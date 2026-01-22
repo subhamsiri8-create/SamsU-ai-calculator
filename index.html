@@ -3,306 +3,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cosmic Omni-Calc</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.0/math.js"></script>
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    
+    <title>MedCode Simplifier</title>
     <style>
         :root {
-            --bg-dark: #050505;
-            --bg-panel: #111;
-            --text-main: #e0e0e0;
-            --accent: #7c3aed; /* Cosmological Purple */
-            --accent-glow: rgba(124, 58, 237, 0.3);
-            --border: #333;
-            --btn-bg: #1f1f1f;
+            --primary: #0284c7; /* Medical Blue */
+            --secondary: #38bdf8;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-light: #64748b;
+            --success: #10b981;
+            --border: #e2e8f0;
         }
 
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg-dark);
+            background-color: var(--bg);
             color: var(--text-main);
             margin: 0;
-            padding: 20px;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            justify-content: center;
             min-height: 100vh;
         }
 
-        .container {
+        .app-container {
             width: 100%;
-            max-width: 900px;
+            max-width: 1000px;
+            background: var(--surface);
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            gap: 15px;
         }
 
-        /* HEADER & TABS */
+        /* HEADER */
         .header {
+            background: var(--primary);
+            color: white;
+            padding: 20px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 15px;
         }
-        h1 { margin: 0; font-size: 1.5rem; letter-spacing: 1px; color: var(--accent); }
-        
-        .mode-select {
-            background: var(--btn-bg);
-            color: white;
-            padding: 8px 15px;
-            border: 1px solid var(--border);
-            border-radius: 5px;
-            cursor: pointer;
-            outline: none;
-        }
+        .header h1 { margin: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        .badge { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; }
 
-        /* INPUT AREA */
-        #command-line {
-            width: 100%;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            color: #fff;
-            padding: 20px;
-            font-size: 1.4rem;
-            border-radius: 8px;
-            font-family: 'Consolas', monospace;
-            box-sizing: border-box; /* Fix padding width issue */
-        }
-        #command-line:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); outline: none; }
-
-        /* RESULT AREA */
-        #output {
-            background: rgba(255,255,255,0.03);
-            padding: 20px;
-            border-radius: 8px;
-            text-align: right;
-            min-height: 50px;
-            font-size: 1.8rem;
-            color: var(--accent);
-            word-break: break-all;
-        }
-        .sub-output { font-size: 0.9rem; color: #888; margin-top: 5px; }
-
-        /* DYNAMIC BUTTONS GRID */
-        .controls-title { font-size: 0.8rem; text-transform: uppercase; color: #666; margin-top: 10px; }
-        
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 10px;
-        }
-
-        button {
-            background: var(--btn-bg);
-            border: 1px solid #333;
-            color: #ccc;
-            padding: 15px;
-            cursor: pointer;
-            transition: 0.2s;
-            border-radius: 6px;
-            font-size: 0.9rem;
+        /* TABS */
+        .tabs {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
+            background: #e0f2fe;
+            border-bottom: 1px solid var(--border);
         }
-        button:hover { background: #2d2d2d; border-color: var(--accent); color: white; }
-        button span { font-size: 0.7rem; color: #666; } /* Description text */
-        
-        .btn-calc { background: var(--accent); color: white; font-weight: bold; }
-        .btn-calc:hover { background: #6d28d9; }
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-light);
+            transition: 0.2s;
+        }
+        .tab.active {
+            background: var(--surface);
+            color: var(--primary);
+            border-top: 3px solid var(--primary);
+        }
 
-        /* GRAPHING */
-        #plot-area {
+        /* CONTENT AREA */
+        .content { padding: 30px; flex: 1; }
+        .view { display: none; }
+        .view.active { display: block; }
+
+        /* SEARCH BAR */
+        .search-box {
+            position: relative;
+            margin-bottom: 30px;
+        }
+        input {
             width: 100%;
-            height: 350px;
-            background: var(--bg-panel);
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            outline: none;
+            box-sizing: border-box;
+            transition: 0.2s;
+        }
+        input:focus { border-color: var(--secondary); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1); }
+
+        /* RESULTS CARDS */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .card {
             border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            background: white;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .card:hover { transform: translateY(-3px); border-color: var(--secondary); }
+        
+        .code-pill {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+        .cpt-pill { background: #8b5cf6; } /* Purple for CPT */
+
+        .card h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
+        .card p { margin: 0; color: var(--text-light); font-size: 0.9rem; line-height: 1.4; }
+
+        /* DECODER TOOL */
+        .decoder-box {
+            background: #f1f5f9;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        .breakdown {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        .part {
+            background: white;
+            padding: 15px;
             border-radius: 8px;
-            display: none;
+            border: 1px solid var(--border);
+            min-width: 100px;
+            position: relative;
+        }
+        .part strong { display: block; font-size: 1.5rem; color: var(--primary); }
+        .part span { font-size: 0.8rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; }
+
+        /* EDUCATION */
+        .info-block {
+            border-left: 4px solid var(--success);
+            background: #f0fdf4;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 0 10px 10px 0;
         }
 
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="app-container">
     <div class="header">
-        <h1>COSMOS CALC</h1>
-        <select id="mode-selector" class="mode-select" onchange="changeMode()">
-            <option value="general">General Math</option>
-            <option value="classical">Classical (Newton)</option>
-            <option value="relativity">Relativity (Einstein)</option>
-            <option value="quantum">Quantum (Planck)</option>
-            <option value="cosmos">Cosmology (Hubble/Hawking)</option>
-        </select>
+        <h1>🏥 MedCode <span style="font-weight:300; margin-left:10px;">Simplifier</span></h1>
+        <div class="badge">v2.0 AI Ready</div>
     </div>
 
-    <div id="output">
-        <div id="result-text">0</div>
-        <div class="sub-output" id="result-history">Ready for calculation...</div>
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('search')">🔍 Code Search</div>
+        <div class="tab" onclick="switchTab('decoder')">🧩 Code Breaker</div>
+        <div class="tab" onclick="switchTab('learn')">📚 Learn Basics</div>
     </div>
 
-    <div id="plot-area"></div>
-
-    <input type="text" id="command-line" placeholder="Enter equation..." autocomplete="off">
-
-    <div class="controls-title" id="controls-label">General Controls</div>
-    <div class="grid" id="button-grid">
+    <div id="search" class="content view active">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Type a condition (e.g. 'Diabetes', 'Arm Fracture', 'Flu')..." onkeyup="searchCodes()">
         </div>
-    
-    <div class="grid" style="margin-top: 15px; border-top: 1px solid #333; padding-top: 15px;">
-        <button class="btn-calc" onclick="runCalc()">CALCULATE [Enter]</button>
-        <button onclick="clearAll()">CLEAR</button>
+        <div id="results" class="results-grid">
+            </div>
     </div>
+
+    <div id="decoder" class="content view">
+        <div class="decoder-box">
+            <h2>Understand the Structure</h2>
+            <p>Enter an ICD-10 code to visualize its components.</p>
+            <input type="text" id="decodeInput" placeholder="e.g. S52.501A" style="max-width:300px; text-align:center; text-transform:uppercase;" maxlength="8">
+            <button onclick="decode()" style="margin-top:20px; padding:10px 20px; background:var(--primary); color:white; border:none; border-radius:5px; cursor:pointer;">Analyze Code</button>
+            
+            <div id="breakdownDisplay" class="breakdown" style="display:none;">
+                <div class="part">
+                    <strong id="p1">S</strong>
+                    <span>Category</span>
+                </div>
+                <div class="part">
+                    <strong id="p2">52</strong>
+                    <span>Body Part</span>
+                </div>
+                <div class="part">
+                    <strong id="p3">50</strong>
+                    <span>Specifics</span>
+                </div>
+                <div class="part" style="border-color:var(--success);">
+                    <strong id="p4">A</strong>
+                    <span style="color:var(--success)">Encounter</span>
+                </div>
+            </div>
+            <p id="explanationText" style="margin-top:20px; color:#64748b; font-style:italic;"></p>
+        </div>
+    </div>
+
+    <div id="learn" class="content view">
+        <h2>Medical Coding 101</h2>
+        
+        <div class="info-block" style="border-color: #0284c7; background: #e0f2fe;">
+            <h3>ICD-10-CM (Diagnosis)</h3>
+            <p>Used to describe <strong>WHAT</strong> is wrong with the patient. (e.g., Flu, Broken Bone, Heart Disease).</p>
+            <p><em>Format: 3-7 characters (e.g., J10.1)</em></p>
+        </div>
+
+        <div class="info-block" style="border-color: #8b5cf6; background: #f3e8ff;">
+            <h3>CPT (Procedures)</h3>
+            <p>Used to describe <strong>WHAT WAS DONE</strong> to fix it. (e.g., Surgery, X-Ray, Office Visit).</p>
+            <p><em>Format: 5 numbers (e.g., 99213)</em></p>
+        </div>
+
+        <div class="info-block">
+            <h3>HCPCS (Equipment/Drugs)</h3>
+            <p>Used for supplies like wheelchairs, ambulances, or specific drugs.</p>
+        </div>
+    </div>
+
 </div>
 
 <script>
-    const inputEl = document.getElementById('command-line');
-    const resultEl = document.getElementById('result-text');
-    const historyEl = document.getElementById('result-history');
-    const gridEl = document.getElementById('button-grid');
-    const labelEl = document.getElementById('controls-label');
-    const plotEl = document.getElementById('plot-area');
+    // --- MINI DATABASE ---
+    const database = [
+        { code: "E11.9", type: "ICD-10", desc: "Type 2 diabetes mellitus without complications", category: "Endocrine" },
+        { code: "I10", type: "ICD-10", desc: "Essential (primary) hypertension", category: "Circulatory" },
+        { code: "J00", type: "ICD-10", desc: "Acute nasopharyngitis [common cold]", category: "Respiratory" },
+        { code: "S52.501A", type: "ICD-10", desc: "Unspecified fracture of lower end of right radius, initial encounter", category: "Injury" },
+        { code: "Z00.00", type: "ICD-10", desc: "Encounter for general adult medical exam", category: "Factors" },
+        { code: "99213", type: "CPT", desc: "Office or other outpatient visit (Low-Mod severity)", category: "E&M" },
+        { code: "73090", type: "CPT", desc: "X-ray exam of forearm", category: "Radiology" },
+        { code: "J11.1", type: "ICD-10", desc: "Influenza with other respiratory manifestations", category: "Respiratory" },
+        { code: "F41.1", type: "ICD-10", desc: "Generalized anxiety disorder", category: "Mental" },
+        { code: "M54.5", type: "ICD-10", desc: "Low back pain", category: "Musculoskeletal" }
+    ];
 
-    // Define Scientific Constants in Math.js Scope
-    const parser = math.parser();
-    parser.evaluate('c = 299792458'); // Speed of Light
-    parser.evaluate('G = 6.67430e-11'); // Gravitational Constant
-    parser.evaluate('h = 6.62607015e-34'); // Planck Constant
-    parser.evaluate('H0 = 2.2e-18'); // Hubble Constant (approx SI)
-    parser.evaluate('M_sun = 1.989e30'); // Mass of Sun
-    parser.evaluate('AU = 1.496e11'); // Astronomical Unit
+    // --- SEARCH LOGIC ---
+    function searchCodes() {
+        const input = document.getElementById('searchInput').value.toLowerCase();
+        const grid = document.getElementById('results');
+        grid.innerHTML = '';
 
-    // BUTTON LAYOUTS
-    const layouts = {
-        general: [
-            { text: "Plot Graph", code: "plot(x^2)", desc: "Draw charts" },
-            { text: "Derivative", code: "derivative('x^2', 'x')", desc: "Calculus" },
-            { text: "Matrix Det", code: "det([[1,2],[3,4]])", desc: "Linear Algebra" },
-            { text: "Simplify", code: "simplify('2x + x')", desc: "Algebra" },
-            { text: "Unit Convert", code: "100 km/h to m/s", desc: "Converter" },
-            { text: "Complex", code: "sqrt(-4)", desc: "Imaginary Nums" }
-        ],
-        classical: [
-            { text: "Force (Newton)", code: "5 kg * 9.8 m/s^2", desc: "F = ma" },
-            { text: "Gravity Force", code: "(G * 5e24 kg * 70 kg) / (6371 km)^2", desc: "F = GmM/r^2" },
-            { text: "Kinetic Energy", code: "0.5 * 10 kg * (20 m/s)^2", desc: "E = 1/2 mv^2" },
-            { text: "Momentum", code: "10 kg * 15 m/s", desc: "p = mv" },
-            { text: "Escape Velocity", code: "sqrt(2 * G * 5.97e24 / 6371000)", desc: "v = sqrt(2GM/r)" }
-        ],
-        relativity: [
-            { text: "Energy (E=mc²)", code: "1 kg * c^2", desc: "Mass-Energy" },
-            { text: "Time Dilation", code: "10 s / sqrt(1 - (0.9)^2)", desc: "at 90% light speed" },
-            { text: "Lorentz Factor", code: "1 / sqrt(1 - 0.5^2)", desc: "Gamma (γ)" },
-            { text: "Length Contract", code: "100 m * sqrt(1 - 0.8^2)", desc: "Moving objects shrink" }
-        ],
-        quantum: [
-            { text: "Photon Energy", code: "h * 5e14 Hz", desc: "E = hf" },
-            { text: "Wavelength", code: "c / 5e14 Hz", desc: "λ = c/f" },
-            { text: "Uncertainty", code: "h / (4 * pi)", desc: "Heisenberg Limit" }
-        ],
-        cosmos: [
-            { text: "Hubble Law", code: "H0 * 10 megaparsec", desc: "v = H0 * d" },
-            { text: "Schwarzschild R", code: "2 * G * M_sun / c^2", desc: "Black Hole Radius" },
-            { text: "Hawking Temp", code: "(h * c^3) / (8 * pi * G * M_sun * 1.38e-23)", desc: "T = hc³/8πGMk" },
-            { text: "Crit Density", code: "3 * H0^2 / (8 * pi * G)", desc: "Flat Universe Check" }
-        ]
-    };
+        const filtered = database.filter(item => 
+            item.desc.toLowerCase().includes(input) || 
+            item.code.toLowerCase().includes(input)
+        );
 
-    // Initialize
-    window.onload = () => { changeMode(); };
-
-    function changeMode() {
-        const mode = document.getElementById('mode-selector').value;
-        const buttons = layouts[mode];
-        
-        labelEl.innerText = mode.toUpperCase() + " CONTROLS";
-        gridEl.innerHTML = ""; // Clear grid
-
-        buttons.forEach(btn => {
-            const button = document.createElement('button');
-            button.innerHTML = `<strong>${btn.text}</strong><span>${btn.desc}</span>`;
-            button.onclick = () => { insert(btn.code); };
-            gridEl.appendChild(button);
-        });
-    }
-
-    function insert(text) {
-        inputEl.value = text;
-        inputEl.focus();
-    }
-
-    function clearAll() {
-        inputEl.value = '';
-        resultEl.innerText = '0';
-        historyEl.innerText = 'Cleared';
-        plotEl.style.display = 'none';
-    }
-
-    function runCalc() {
-        let expression = inputEl.value.trim();
-        if (!expression) return;
-
-        // Plotting Handler
-        if (expression.startsWith('plot(')) {
-            handlePlot(expression);
+        if(filtered.length === 0) {
+            grid.innerHTML = '<p style="text-align:center; width:100%; color:#999;">No codes found in this demo database.</p>';
             return;
         }
 
-        try {
-            plotEl.style.display = 'none';
-            // Use Scope-enabled parser
-            const result = parser.evaluate(expression);
-            
-            let displayRes;
-            if (typeof result === 'object' && result.toString) {
-                displayRes = result.toString();
-            } else {
-                displayRes = math.format(result, { precision: 14 });
-            }
+        filtered.forEach(item => {
+            const isCPT = item.type === 'CPT';
+            const html = `
+                <div class="card" onclick="alert('Copied ${item.code}')">
+                    <span class="code-pill ${isCPT ? 'cpt-pill' : ''}">${item.code}</span>
+                    <h3>${item.desc}</h3>
+                    <p>Type: <strong>${item.type}</strong> • Cat: ${item.category}</p>
+                </div>
+            `;
+            grid.innerHTML += html;
+        });
+    }
 
-            historyEl.innerText = expression + " =";
-            resultEl.innerText = displayRes;
-        } catch (err) {
-            resultEl.innerText = "Error";
-            historyEl.innerText = err.message;
+    // --- TAB LOGIC ---
+    function switchTab(tabId) {
+        document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    // --- DECODER LOGIC ---
+    function decode() {
+        let code = document.getElementById('decodeInput').value.toUpperCase().trim();
+        const display = document.getElementById('breakdownDisplay');
+        const text = document.getElementById('explanationText');
+
+        if (code.length < 3) {
+            alert("Code is too short.");
+            return;
+        }
+
+        display.style.display = 'flex';
+
+        // Simple ICD-10 Parser Logic (Mock logic for demo)
+        const part1 = code.charAt(0); // Category Letter
+        const part2 = code.substring(1, 3); // Category Number
+        const part3 = code.substring(4, code.length - 1); // Etiology/Site
+        const part4 = code.charAt(code.length - 1); // Extension (often 7th char)
+
+        // Populate visual blocks
+        document.getElementById('p1').innerText = part1;
+        document.getElementById('p2').innerText = part2;
+        
+        // Handle Extension (The 7th character in ICD-10 usually indicates encounter type)
+        if (["A", "D", "S"].includes(part4) && code.length > 5) {
+            document.getElementById('p4').parentElement.style.display = 'block';
+            document.getElementById('p4').innerText = part4;
+            document.getElementById('p3').innerText = code.substring(3, code.length-1).replace('.','');
+            
+            let encounterType = "Unknown";
+            if(part4 === 'A') encounterType = "Initial Encounter (Active Treatment)";
+            if(part4 === 'D') encounterType = "Subsequent Encounter (Healing/Rehab)";
+            if(part4 === 'S') encounterType = "Sequela (Long term side-effect)";
+            
+            text.innerHTML = `This code ends in <strong>'${part4}'</strong>, which usually indicates: <br>${encounterType}`;
+        } else {
+            document.getElementById('p3').innerText = code.substring(3).replace('.','');
+            document.getElementById('p4').parentElement.style.display = 'none';
+            text.innerText = "Standard diagnosis code structure.";
         }
     }
 
-    function handlePlot(exp) {
-        try {
-            const formulaStr = exp.match(/plot\((.*)\)/)[1]; 
-            const expr = math.compile(formulaStr);
-            const xValues = math.range(-10, 10, 0.1).toArray();
-            const yValues = xValues.map(x => expr.evaluate({x: x}));
-
-            plotEl.style.display = 'block';
-            
-            Plotly.newPlot('plot-area', [{
-                x: xValues, y: yValues, type: 'scatter', mode: 'lines',
-                line: {color: '#7c3aed', width: 3}
-            }], {
-                paper_bgcolor: '#111',
-                plot_bgcolor: '#111',
-                margin: { t: 20, r: 20, b: 40, l: 40 },
-                xaxis: { gridcolor: '#333' },
-                yaxis: { gridcolor: '#333' },
-                font: { color: '#ccc' }
-            });
-            resultEl.innerText = "Graph Generated";
-        } catch (e) {
-            resultEl.innerText = "Graph Error";
-        }
-    }
-
-    // Enter Key
-    inputEl.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") runCalc();
-    });
+    // Init with all codes
+    searchCodes();
 
 </script>
+
 </body>
 </html>
