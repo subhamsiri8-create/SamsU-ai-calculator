@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hospital Bill Generator</title>
+    <title>Care n Cure Bill Generator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #2563eb;
+            --primary: #0891b2; /* Medical Cyan */
             --text: #1f2937;
             --border: #e5e7eb;
             --bg: #f3f4f6;
@@ -48,24 +48,24 @@
         input:focus, textarea:focus {
             outline: none;
             border-color: var(--primary);
-            background: rgba(37, 99, 235, 0.05);
+            background: rgba(8, 145, 178, 0.05);
         }
         
         /* HEADER */
         .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--primary); padding-bottom: 20px; margin-bottom: 20px; }
-        .hospital-info { width: 60%; }
-        .hospital-input { font-size: 1.8rem; font-weight: bold; color: var(--primary); margin-bottom: 5px; border: none; }
-        .sub-input { font-size: 0.9rem; color: #666; margin-bottom: 2px; }
+        .hospital-info { width: 65%; }
+        .hospital-input { font-size: 2rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; border: none; text-transform: uppercase; }
+        .sub-input { font-size: 0.95rem; color: #444; margin-bottom: 2px; font-weight: 500;}
         
-        .invoice-meta { text-align: right; width: 35%; }
+        .invoice-meta { text-align: right; width: 30%; }
         .meta-group { display: flex; gap: 10px; margin-bottom: 5px; align-items: center; justify-content: flex-end; }
         .meta-label { font-weight: bold; font-size: 0.9rem; }
 
         /* PATIENT INFO */
-        .patient-section { background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid var(--border); }
+        .patient-section { background: #ecfeff; padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #cffafe; }
         .row { display: flex; gap: 20px; margin-bottom: 10px; }
         .col { flex: 1; }
-        .label { font-size: 0.8rem; color: #666; display: block; margin-bottom: 3px; }
+        .label { font-size: 0.8rem; color: #555; display: block; margin-bottom: 3px; font-weight: 600; }
 
         /* BILLING TABLE */
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
@@ -74,7 +74,7 @@
         
         .qty-col { width: 60px; }
         .price-col { width: 100px; text-align: right; }
-        .total-col { width: 100px; text-align: right; font-weight: bold; background: #f9fafb; }
+        .total-col { width: 120px; text-align: right; font-weight: bold; background: #f9fafb; }
         .action-col { width: 40px; text-align: center; }
 
         .btn-remove { color: red; cursor: pointer; border: none; background: none; font-size: 1.2rem; }
@@ -89,7 +89,7 @@
         .totals-section { display: flex; justify-content: flex-end; margin-top: 20px; }
         .totals-box { width: 300px; }
         .total-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
-        .grand-total { font-size: 1.3rem; font-weight: bold; color: var(--primary); border-top: 2px solid var(--primary); border-bottom: none; }
+        .grand-total { font-size: 1.4rem; font-weight: bold; color: var(--primary); border-top: 2px solid var(--primary); border-bottom: none; margin-top: 5px; padding-top: 10px;}
 
         /* FOOTER / CONTROLS */
         .controls {
@@ -100,20 +100,18 @@
             border-radius: 50px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             font-weight: bold; display: flex; align-items: center; gap: 10px; transition: transform 0.2s;
         }
-        .float-btn:hover { transform: translateY(-2px); background: #1d4ed8; }
+        .float-btn:hover { transform: translateY(-2px); background: #0e7490; }
         .float-btn.secondary { background: white; color: var(--text); }
 
         .footer-note { margin-top: 40px; text-align: center; font-size: 0.8rem; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
 
-        /* --- PRINT MODE (THE MAGIC) --- */
+        /* --- PRINT MODE --- */
         @media print {
             body { background: white; padding: 0; }
             .invoice-sheet { box-shadow: none; width: 100%; padding: 0; margin: 0; }
             .controls, .btn-add, .action-col, .btn-remove { display: none !important; }
             input, textarea, select { border: none !important; resize: none; padding: 0; }
-            /* Hide placeholders on print */
             input::placeholder { color: transparent; }
-            /* Expand sheet to full paper */
             @page { margin: 15mm; }
         }
     </style>
@@ -125,18 +123,46 @@
     <button class="float-btn secondary" onclick="resetBill()"><i class="fa fa-redo"></i> New Bill</button>
 </div>
 
+<datalist id="bloodTests">
+    <option value="Complete Blood Picture (CBP/CBC)">
+    <option value="Lipid Profile (Cholesterol, Triglycerides)">
+    <option value="Liver Function Test (LFT)">
+    <option value="Kidney Function Test (KFT/RFT)">
+    <option value="Thyroid Profile (T3, T4, TSH)">
+    <option value="Diabetic Profile (FBS, PLBS, HbA1c)">
+    <option value="Blood Grouping & Rh Type">
+    <option value="Hemoglobin (Hb)">
+    <option value="Blood Sugar Fasting (FBS)">
+    <option value="Blood Sugar Post Lunch (PLBS)">
+    <option value="HbA1c (Glycosylated Hemoglobin)">
+    <option value="Serum Creatinine">
+    <option value="Blood Urea">
+    <option value="Uric Acid">
+    <option value="Serum Calcium">
+    <option value="Vitamin B12">
+    <option value="Vitamin D3">
+    <option value="Dengue NS1 Antigen">
+    <option value="Malaria Parasite (MP)">
+    <option value="Typhoid (Widal Test)">
+    <option value="HIV I & II">
+    <option value="HBsAg (Hepatitis B)">
+    <option value="Urine Routine Examination">
+    <option value="Stool Routine Examination">
+    <option value="CRP (C-Reactive Protein)">
+</datalist>
+
 <div class="invoice-sheet">
     
     <div class="header">
         <div class="hospital-info">
-            <input type="text" class="hospital-input" value="CITY GENERAL HOSPITAL" placeholder="Hospital Name">
-            <input type="text" class="sub-input" value="123 Medical Center Dr, New York, NY" placeholder="Address Line 1">
-            <input type="text" class="sub-input" value="Ph: (555) 019-2834 | Email: billing@hospital.com" placeholder="Contact Info">
+            <input type="text" class="hospital-input" value="CARE N CURE" placeholder="Hospital Name">
+            <textarea class="sub-input" rows="2" style="resize:none;">Bada Mahalla, Lunani Nagar, Tangellamudi, Eluru-534005, Andhra Pradesh</textarea>
+            <input type="text" class="sub-input" value="Ph: 093933 23233 | Email: carencure@email.com" placeholder="Contact Info">
         </div>
         <div class="invoice-meta">
             <div class="meta-group">
                 <span class="meta-label">Bill No:</span>
-                <input type="text" value="#INV-2024-001" style="width: 100px; text-align: right;">
+                <input type="text" value="CNC-2024-001" style="width: 100px; text-align: right;">
             </div>
             <div class="meta-group">
                 <span class="meta-label">Date:</span>
@@ -153,28 +179,28 @@
         <div class="row">
             <div class="col">
                 <label class="label">Patient Name</label>
-                <input type="text" placeholder="John Doe" style="font-weight: bold;">
+                <input type="text" placeholder="Enter Patient Name" style="font-weight: bold;">
             </div>
             <div class="col">
                 <label class="label">Age / Gender</label>
                 <div style="display:flex; gap:10px;">
-                    <input type="number" placeholder="45" style="width:60px;">
+                    <input type="number" placeholder="Age" style="width:60px;">
                     <select style="width:100px;"><option>Male</option><option>Female</option><option>Other</option></select>
                 </div>
             </div>
             <div class="col">
-                <label class="label">Doctor In-Charge</label>
-                <input type="text" placeholder="Dr. Smith">
+                <label class="label">Ref. Doctor</label>
+                <input type="text" placeholder="Dr. Name">
             </div>
         </div>
         <div class="row" style="margin-bottom:0;">
             <div class="col">
-                <label class="label">Address</label>
-                <input type="text" placeholder="123 Patient St, City">
+                <label class="label">Address / Mobile</label>
+                <input type="text" placeholder="Patient Address / Phone">
             </div>
             <div class="col">
-                <label class="label">UHID / Reg No.</label>
-                <input type="text" placeholder="REG-998877">
+                <label class="label">UHID / Lab ID</label>
+                <input type="text" placeholder="LAB-9988">
             </div>
         </div>
     </div>
@@ -182,10 +208,10 @@
     <table id="billTable">
         <thead>
             <tr>
-                <th>Description / Service</th>
+                <th>Test Description / Service</th>
                 <th class="qty-col">Qty</th>
-                <th class="price-col">Rate</th>
-                <th class="total-col">Amount</th>
+                <th class="price-col">Rate (₹)</th>
+                <th class="total-col">Amount (₹)</th>
                 <th class="action-col"></th>
             </tr>
         </thead>
@@ -193,42 +219,42 @@
             </tbody>
     </table>
 
-    <button class="btn-add" onclick="addRow()">+ Add Item</button>
+    <button class="btn-add" onclick="addRow()">+ Add Test / Service</button>
 
     <div class="totals-section">
         <div class="totals-box">
             <div class="total-row">
                 <span>Subtotal</span>
-                <span id="subTotal">$0.00</span>
+                <span id="subTotal">₹0.00</span>
             </div>
             <div class="total-row">
-                <span>Tax (%) <input type="number" id="taxRate" value="0" oninput="calcTotal()" style="width:40px; text-align:center; border:1px solid #ddd;"></span>
-                <span id="taxAmount">$0.00</span>
+                <span>Tax / GST (%) <input type="number" id="taxRate" value="0" oninput="calcTotal()" style="width:40px; text-align:center; border:1px solid #ddd;"></span>
+                <span id="taxAmount">₹0.00</span>
             </div>
             <div class="total-row">
-                <span>Discount</span>
+                <span>Discount (₹)</span>
                 <input type="number" id="discount" value="0" oninput="calcTotal()" style="width:80px; text-align:right;">
             </div>
             <div class="total-row grand-total">
                 <span>Total Due</span>
-                <span id="grandTotal">$0.00</span>
+                <span id="grandTotal">₹0.00</span>
             </div>
         </div>
     </div>
 
-    <div style="margin-top: 50px; display: flex; justify-content: space-between;">
+    <div style="margin-top: 60px; display: flex; justify-content: space-between; align-items: flex-end;">
         <div style="text-align: center;">
-            <div style="border-bottom: 1px solid black; width: 150px; margin-bottom: 5px;"></div>
-            <small>Patient Signature</small>
+            <div style="border-bottom: 1px solid #333; width: 150px; margin-bottom: 5px;"></div>
+            <small style="font-weight:600;">Patient Signature</small>
         </div>
         <div style="text-align: center;">
-            <div style="border-bottom: 1px solid black; width: 150px; margin-bottom: 5px;"></div>
-            <small>Authorized Signatory</small>
+            <div style="border-bottom: 1px solid #333; width: 150px; margin-bottom: 5px;"></div>
+            <small style="font-weight:600;">Authorized Signatory<br>For Care n Cure</small>
         </div>
     </div>
 
     <div class="footer-note">
-        <input type="text" value="Get well soon! This is a computer generated invoice." style="text-align: center; width: 100%;">
+        <input type="text" value="Thank you. Report will be available within 24 hours." style="text-align: center; width: 100%;">
     </div>
 
 </div>
@@ -240,14 +266,14 @@
 
     const tbody = document.querySelector('#billTable tbody');
 
-    // Default Row
+    // Add Row Function with INR and Datalist
     function addRow(desc = '', qty = 1, price = 0) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input type="text" class="desc" value="${desc}" placeholder="Service Name (e.g. Consultation)"></td>
+            <td><input type="text" class="desc" list="bloodTests" value="${desc}" placeholder="Type test name (e.g. CBC, Lipid...)"></td>
             <td><input type="number" class="qty" value="${qty}" min="1" oninput="calcRow(this)"></td>
             <td><input type="number" class="price" value="${price}" min="0" step="0.01" oninput="calcRow(this)"></td>
-            <td class="amount">$0.00</td>
+            <td class="amount">₹0.00</td>
             <td class="action-col"><button class="btn-remove" onclick="removeRow(this)">×</button></td>
         `;
         tbody.appendChild(tr);
@@ -264,7 +290,7 @@
         const qty = parseFloat(tr.querySelector('.qty').value) || 0;
         const price = parseFloat(tr.querySelector('.price').value) || 0;
         const total = qty * price;
-        tr.querySelector('.amount').innerText = '$' + total.toFixed(2);
+        tr.querySelector('.amount').innerText = '₹' + total.toFixed(2);
         tr.dataset.total = total;
         calcTotal();
     }
@@ -281,9 +307,9 @@
         const tax = sub * (taxRate / 100);
         const grand = (sub + tax) - discount;
 
-        document.getElementById('subTotal').innerText = '$' + sub.toFixed(2);
-        document.getElementById('taxAmount').innerText = '$' + tax.toFixed(2);
-        document.getElementById('grandTotal').innerText = '$' + grand.toFixed(2);
+        document.getElementById('subTotal').innerText = '₹' + sub.toFixed(2);
+        document.getElementById('taxAmount').innerText = '₹' + tax.toFixed(2);
+        document.getElementById('grandTotal').innerText = '₹' + grand.toFixed(2);
     }
 
     function resetBill() {
@@ -292,10 +318,11 @@
         }
     }
 
-    // Add 3 starter rows
-    addRow('General Consultation', 1, 50);
-    addRow('Blood Test (CBC)', 1, 30);
-    addRow('', 1, 0);
+    // Initialize with common blood tests for Care n Cure
+    addRow('Complete Blood Picture (CBP/CBC)', 1, 350);
+    addRow('Blood Sugar Fasting (FBS)', 1, 100);
+    addRow('Thyroid Profile (T3, T4, TSH)', 1, 600);
+    addRow('', 1, 0); // Empty row for user input
 
 </script>
 
