@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Care n Cure - Connected ERP</title>
+    <title>Care n Cure - Secure Billing</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary: #0891b2;
             --dark: #0f172a;
             --light: #f1f5f9;
-            --danger: #ef4444;
-            --success: #10b981;
         }
 
         body {
@@ -34,6 +32,7 @@
             box-shadow: 4px 0 10px rgba(0,0,0,0.1);
         }
         .brand { font-size: 1.4rem; font-weight: bold; color: var(--primary); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        
         .nav-item {
             padding: 15px;
             cursor: pointer;
@@ -47,12 +46,22 @@
         .nav-item:hover, .nav-item.active { background: #1e293b; color: white; }
         .nav-item.active { border-left: 4px solid var(--primary); }
 
-        /* MAIN CONTENT AREA */
+        /* LOCKED ITEM STYLE */
+        .nav-item.locked::after {
+            content: '\f023'; /* FontAwesome Lock Icon */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            margin-left: auto;
+            font-size: 0.8rem;
+            opacity: 0.5;
+        }
+
+        /* MAIN */
         .main { flex: 1; padding: 20px; overflow-y: auto; position: relative; }
         .view { display: none; }
         .view.active { display: block; }
 
-        /* --- BILLING VIEW (INVOICE SHEET) --- */
+        /* INVOICE SHEET (CASHIER VIEW) */
         .invoice-sheet {
             background: white;
             max-width: 210mm;
@@ -64,36 +73,40 @@
         .header { display: flex; justify-content: space-between; border-bottom: 2px solid var(--primary); padding-bottom: 20px; margin-bottom: 20px; }
         .hospital-input { font-size: 1.8rem; font-weight: 800; color: var(--primary); border: none; width: 100%; text-transform: uppercase; }
         .sub-input { font-size: 0.9rem; color: #444; border:none; width: 100%; }
+
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
         th { background: var(--primary); color: white; padding: 8px; text-align: left; }
         td { border-bottom: 1px solid #eee; padding: 8px; }
         input { border: 1px dashed #ccc; padding: 4px; width: 100%; box-sizing: border-box; }
         input:focus { outline: none; border-color: var(--primary); }
 
-        /* --- ADMIN DASHBOARD --- */
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); }
-        .stat-card h3 { margin: 0; font-size: 0.9rem; color: #64748b; }
-        .stat-card .value { font-size: 1.8rem; font-weight: bold; color: var(--dark); margin-top: 5px; }
+        /* ADMIN DASHBOARD */
+        .admin-panel { padding: 20px; }
+        .admin-table { width: 100%; background: white; border-collapse: collapse; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
+        .admin-table th { background: #e2e8f0; color: #333; padding: 12px; text-align: left; }
+        .admin-table td { padding: 12px; border-bottom: 1px solid #eee; }
+        .stats-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
-        .table-container { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .admin-table { width: 100%; border-collapse: collapse; }
-        .admin-table th { background: #f8fafc; color: #64748b; padding: 12px; text-align: left; font-size: 0.85rem; }
-        .admin-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
-        
-        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
-        .badge-paid { background: #dcfce7; color: #166534; }
+        /* LOGIN MODAL */
+        .login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .login-box {
+            background: white; padding: 30px; border-radius: 10px; width: 300px; text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .login-input { margin-bottom: 15px; padding: 10px; width: 100%; border: 1px solid #ccc; border-radius: 5px; }
+        .btn-login { background: var(--primary); color: white; border: none; padding: 10px 20px; width: 100%; border-radius: 5px; cursor: pointer; font-weight: bold; }
 
         /* PRINT BUTTONS */
         .controls { position: fixed; bottom: 30px; right: 30px; display: flex; gap: 10px; }
         .fab { background: var(--primary); color: white; border: none; padding: 15px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         
         @media print {
-            .sidebar, .controls, .nav-item { display: none; }
+            .sidebar, .controls, .login-overlay { display: none; }
             .invoice-sheet { box-shadow: none; margin: 0; width: 100%; }
-            body { background: white; }
-            .view { display: none; }
-            #view-billing { display: block; }
             input { border: none !important; }
             @page { margin: 0; }
         }
@@ -101,13 +114,30 @@
 </head>
 <body>
 
+<div id="loginModal" class="login-overlay">
+    <div class="login-box">
+        <h2 style="color:var(--dark); margin-top:0"><i class="fa fa-lock"></i> Admin Access</h2>
+        <input type="text" id="username" class="login-input" placeholder="Username">
+        <input type="password" id="password" class="login-input" placeholder="Password">
+        <button class="btn-login" onclick="attemptLogin()">Login</button>
+        <button onclick="closeLogin()" style="background:none; border:none; color:#666; margin-top:10px; cursor:pointer">Cancel</button>
+    </div>
+</div>
+
 <div class="sidebar">
     <div class="brand"><i class="fa fa-heartbeat"></i> Care n Cure</div>
+    
     <div class="nav-item active" onclick="switchView('billing', this)">
-        <i class="fa fa-file-invoice-dollar"></i> New Bill
+        <i class="fa fa-file-invoice-dollar"></i> New Bill (Cashier)
     </div>
-    <div class="nav-item" onclick="switchView('admin', this)">
-        <i class="fa fa-chart-line"></i> Dashboard
+
+    <div class="nav-item locked" onclick="checkAdminAccess(this)">
+        <i class="fa fa-chart-line"></i> Admin Dashboard
+    </div>
+    
+    <div style="margin-top:auto; font-size:0.8rem; color:#666; text-align:center;">
+        Safe Mode: ON<br>
+        Cashier Access Only
     </div>
 </div>
 
@@ -123,8 +153,7 @@
                 </div>
                 <div style="text-align:right">
                     <b>BILL NO:</b> <input id="billNo" style="width:100px; text-align:right" readonly><br>
-                    <b>DATE:</b> <input type="date" id="billDate" style="width:110px"><br>
-                    <span style="font-size:0.8rem; color:green">● Connected to Cloud</span>
+                    <b>DATE:</b> <input type="date" id="billDate" style="width:110px">
                 </div>
             </div>
 
@@ -154,14 +183,18 @@
     </div>
 
     <div id="view-admin" class="view">
-        <h2 style="margin-bottom:20px">Daily Overview</h2>
-        <div class="stats-grid">
-            <div class="stat-card" style="border-color:#0891b2"><h3>Today's Revenue</h3><div class="value" id="stat-revenue">₹0</div></div>
-            <div class="stat-card" style="border-color:#10b981"><h3>Bills Generated</h3><div class="value" id="stat-count">0</div></div>
-            <div class="stat-card" style="border-color:#6366f1"><h3>Sync Status</h3><div class="value" style="font-size:1rem; color:green">● Online</div></div>
-        </div>
-        <div class="table-container">
-            <h3>Recent Transactions</h3>
+        <div class="admin-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="margin:0">Admin Dashboard</h2>
+                <button onclick="logoutAdmin()" style="background:#ef4444; color:white; border:none; padding:5px 15px; border-radius:4px; cursor:pointer">Logout</button>
+            </div>
+
+            <div class="stats-card">
+                <h3 style="margin-top:0; color:#64748b">Total Revenue Today</h3>
+                <div id="stat-revenue" style="font-size:2rem; font-weight:bold; color:#0891b2">₹0</div>
+            </div>
+
+            <h3>Today's Bills Log</h3>
             <table class="admin-table">
                 <thead><tr><th>Bill #</th><th>Time</th><th>Patient</th><th>Amount</th><th>Status</th></tr></thead>
                 <tbody id="adminTableBody"></tbody>
@@ -180,30 +213,42 @@
 </datalist>
 
 <script>
-    // --- YOUR GOOGLE SCRIPT URL ---
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxd4UmUpFZhvc1nA6n8RRFXnhZI97SYpLFTmFFBf2Iaug2K5T3sH3j9VE7Qnh8IAA/exec";
+    
+    // --- PRICES ---
+    const testPrices = {
+        "Complete Blood Picture (CBP)": 350, "Lipid Profile": 650, "Thyroid Profile (T3, T4, TSH)": 600,
+        "Blood Sugar Fasting": 100, "Urine Examination": 150
+    };
 
-    // --- LOCAL DATABASE ---
     let bills = JSON.parse(localStorage.getItem('cnc_bills')) || [];
     let billCounter = parseInt(localStorage.getItem('cnc_counter')) || 1001;
+    let isAdmin = false;
 
     window.onload = function() {
         document.getElementById('billDate').valueAsDate = new Date();
         document.getElementById('billNo').value = "CNC-" + billCounter;
-        addBillRow(); 
-        loadAdminData();
+        addBillRow();
     };
 
+    // --- BILLING LOGIC (CASHIER) ---
     function addBillRow() {
         const tbody = document.getElementById('billBody');
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input class="desc" list="bloodTests" placeholder="Test Name"></td>
+            <td><input class="desc" list="bloodTests" placeholder="Test Name" oninput="autoPrice(this)"></td>
             <td><input type="number" class="qty" value="1" oninput="calcTotal()"></td>
             <td><input type="number" class="rate" value="0" oninput="calcTotal()"></td>
             <td class="amt">₹0</td>
         `;
         tbody.appendChild(tr);
+    }
+
+    function autoPrice(input) {
+        if (testPrices[input.value]) {
+            input.closest('tr').querySelector('.rate').value = testPrices[input.value];
+            calcTotal();
+        }
     }
 
     function calcTotal() {
@@ -223,10 +268,9 @@
         const patient = document.getElementById('ptName').value;
         if(!patient) return alert("Please enter Patient Name");
 
-        // UI Feedback
         const btn = document.getElementById('printBtn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = "<i class='fa fa-spinner fa-spin'></i> Saving...";
+        const oldText = btn.innerHTML;
+        btn.innerHTML = "Saving...";
 
         const amount = calcTotal();
         const billData = {
@@ -237,64 +281,78 @@
             status: 'active'
         };
 
-        // 1. Save Locally
         bills.push(billData);
         localStorage.setItem('cnc_bills', JSON.stringify(bills));
-        
         billCounter++;
         localStorage.setItem('cnc_counter', billCounter);
 
-        // 2. Send to Google Sheets (Cloud)
         fetch(GOOGLE_SCRIPT_URL, {
-            method: "POST",
-            mode: "no-cors", // Important for Google Script
+            method: "POST", mode: "no-cors",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(billData)
-        })
-        .then(() => {
-            console.log("Sent to Google Sheets");
-        })
-        .catch(err => console.error("Error sending to sheet", err));
+        });
 
-        // 3. Print & Reset UI
         setTimeout(() => {
-            btn.innerHTML = originalText;
+            btn.innerHTML = oldText;
             window.print();
-            loadAdminData();
-            // Optional: Ask to reload after printing
-            // if(confirm("New Bill?")) location.reload(); 
+            // location.reload(); // Optional reset
         }, 500);
+    }
+
+    // --- SECURITY LOGIC (ADMIN) ---
+    function checkAdminAccess(navEl) {
+        if(isAdmin) {
+            switchView('admin', navEl);
+        } else {
+            document.getElementById('loginModal').style.display = 'flex';
+        }
+    }
+
+    function attemptLogin() {
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+
+        if(u === 'admin' && p === 'admin') {
+            isAdmin = true;
+            document.getElementById('loginModal').style.display = 'none';
+            // Find the admin nav element to highlight it
+            const navItems = document.querySelectorAll('.nav-item');
+            switchView('admin', navItems[1]); 
+            loadAdminData();
+        } else {
+            alert("Wrong Username or Password!");
+        }
+    }
+
+    function closeLogin() {
+        document.getElementById('loginModal').style.display = 'none';
+    }
+
+    function logoutAdmin() {
+        isAdmin = false;
+        alert("Logged Out");
+        const navItems = document.querySelectorAll('.nav-item');
+        switchView('billing', navItems[0]); // Go back to cashier view
     }
 
     function loadAdminData() {
         const adminBody = document.getElementById('adminTableBody');
         adminBody.innerHTML = '';
         let todayRev = 0;
-        let todayCount = 0;
 
-        // Sort newest first
         [...bills].reverse().forEach(bill => {
-            // Check if today
-            const billDate = new Date(bill.date);
-            const isToday = new Date().toDateString() === billDate.toDateString();
-            
-            if(isToday && bill.status === 'active') {
-                todayRev += bill.amount;
-                todayCount++;
-            }
-
+            todayRev += bill.amount;
             const row = `<tr>
                 <td>${bill.id}</td>
-                <td>${billDate.toLocaleTimeString()}</td>
+                <td>${bill.date}</td>
                 <td><b>${bill.patient}</b></td>
                 <td>₹${bill.amount}</td>
-                <td><span class="badge badge-paid">Saved</span></td>
+                <td>Saved</td>
             </tr>`;
             adminBody.innerHTML += row;
         });
 
         document.getElementById('stat-revenue').innerText = "₹" + todayRev;
-        document.getElementById('stat-count').innerText = todayCount;
     }
 
     function switchView(viewName, navEl) {
@@ -302,7 +360,6 @@
         document.getElementById('view-' + viewName).classList.add('active');
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         navEl.classList.add('active');
-        if(viewName === 'admin') loadAdminData();
     }
 </script>
 
