@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Care n Cure - Watermark Bill</title>
+    <title>Care n Cure - Top Controls</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -11,6 +11,7 @@
             --dark: #0f172a;
             --light: #f1f5f9;
             --danger: #ef4444;
+            --success: #10b981;
         }
 
         body {
@@ -52,36 +53,65 @@
         .view { display: none; }
         .view.active { display: block; }
 
-        /* INVOICE SHEET CONTAINER */
+        /* --- TOP ACTION BAR --- */
+        .action-bar {
+            max-width: 210mm;
+            margin: 0 auto 15px auto;
+            display: flex;
+            justify-content: flex-end; /* Aligns buttons to right */
+            gap: 10px;
+        }
+
+        .btn-action {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        
+        .btn-save { 
+            background: var(--primary); 
+            color: white; 
+            box-shadow: 0 4px 6px -1px rgba(8, 145, 178, 0.3);
+        }
+        .btn-save:hover { background: #0e7490; transform: translateY(-1px); }
+        
+        .btn-reset { 
+            background: white; 
+            color: #64748b; 
+            border: 1px solid #cbd5e1; 
+        }
+        .btn-reset:hover { background: #f8fafc; color: #334155; }
+
+        /* INVOICE SHEET */
         .invoice-sheet {
             background: white;
             max-width: 210mm;
             margin: 0 auto;
             min-height: 250mm;
             padding: 20mm;
-            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             font-size: 14px;
-            position: relative; /* Needed for watermark positioning */
+            position: relative;
             z-index: 1;
-            overflow: hidden; /* Keeps watermark inside */
+            overflow: hidden;
+            border-radius: 4px;
         }
         
-        /* --- WATERMARK STYLE --- */
+        /* WATERMARK */
         .watermark {
             position: absolute;
-            top: 55%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 70%; /* Size of watermark */
-            opacity: 0.08; /* Very faint (8%) */
-            z-index: -1; /* Send to back */
-            pointer-events: none; /* Click through it */
+            top: 55%; left: 50%; transform: translate(-50%, -50%);
+            width: 70%; opacity: 0.08; z-index: -1; pointer-events: none;
         }
         .watermark img { width: 100%; height: auto; }
         
-        /* CONTENT LAYERS (To sit above watermark) */
-        .header, .patient-box, table, .total-section, .footer { position: relative; z-index: 2; }
-
         /* HEADER */
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--primary); padding-bottom: 20px; margin-bottom: 20px; }
         .logo-area { width: 100px; margin-right: 20px; }
@@ -100,7 +130,6 @@
             display: grid;
             grid-template-columns: 2fr 1fr 1fr;
             gap: 15px;
-            /* background: rgba(248, 250, 252, 0.8);  Semi-transparent background to let watermark show slightly */
             background: transparent;
         }
         .row-2 { grid-column: span 3; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
@@ -125,7 +154,6 @@
         .admin-table th { background: #e2e8f0; color: #333; padding: 12px; text-align: left; }
         .admin-table td { padding: 12px; border-bottom: 1px solid #eee; }
         
-        /* BUTTONS */
         .action-cell { display: flex; gap: 5px; }
         .btn-edit { background: #3b82f6; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
         .btn-delete { background: var(--danger); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
@@ -136,16 +164,13 @@
         .login-input { margin-bottom: 15px; padding: 10px; width: 100%; border: 1px solid #ccc; border-radius: 5px; }
         .btn-login { background: var(--primary); color: white; border: none; padding: 10px 20px; width: 100%; border-radius: 5px; cursor: pointer; font-weight: bold; }
         
-        .controls { position: fixed; bottom: 30px; right: 30px; display: flex; gap: 10px; }
-        .fab { background: var(--primary); color: white; border: none; padding: 15px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .edit-mode-banner { background: #f59e0b; color: #fff; text-align: center; padding: 5px; font-weight: bold; border-radius: 4px; margin-bottom: 10px; display: none; }
 
         @media print {
-            .sidebar, .controls, .login-overlay, button, .edit-mode-banner { display: none !important; }
+            .sidebar, .action-bar, .login-overlay, button, .edit-mode-banner { display: none !important; }
             .invoice-sheet { box-shadow: none; margin: 0; width: 100%; padding: 0; }
             body { background: white; }
             .patient-box { border: 1px solid #000; }
-            /* Ensure watermark prints */
             .watermark { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             @page { margin: 0; size: A4; }
         }
@@ -176,12 +201,19 @@
 <div class="main">
 
     <div id="view-billing" class="view active">
+        
+        <div class="action-bar">
+            <button class="btn-action btn-reset" onclick="resetForm()">
+                <i class="fa fa-redo"></i> New Bill
+            </button>
+            <button class="btn-action btn-save" id="printBtn" onclick="saveAndPrint()">
+                <i class="fa fa-print"></i> Save & Print
+            </button>
+        </div>
+
         <div class="invoice-sheet">
             
-            <div class="watermark">
-                <img src="logo.png" alt="Watermark">
-            </div>
-
+            <div class="watermark"><img src="logo.png" alt="Watermark"></div>
             <div id="editBanner" class="edit-mode-banner"><i class="fa fa-edit"></i> EDITING MODE</div>
 
             <div class="header">
@@ -213,22 +245,17 @@
             </table>
             <button onclick="addBillRow()" style="background:#f1f5f9; border:1px dashed #ccc; width:100%; padding:8px; cursor:pointer; color:#64748b;">+ Add Item</button>
 
-            <div style="display:flex; justify-content:flex-end; margin-top:20px;" class="total-section">
+            <div style="display:flex; justify-content:flex-end; margin-top:20px;">
                 <div style="width:200px; text-align:right;">
                     <span>Total Amount:</span><br>
                     <span id="billTotal" style="font-size:1.5rem; font-weight:bold; color:var(--primary);">₹0.00</span>
                 </div>
             </div>
 
-            <div class="footer" style="margin-top:50px; display:flex; justify-content:space-between; font-size:0.8rem;">
+            <div style="margin-top:50px; display:flex; justify-content:space-between; font-size:0.8rem;">
                 <div style="text-align:center"><div style="border-bottom:1px solid #000; width:120px; margin-bottom:5px;"></div>Patient Sign</div>
                 <div style="text-align:center"><div style="border-bottom:1px solid #000; width:120px; margin-bottom:5px;"></div>Authorized Signatory</div>
             </div>
-        </div>
-
-        <div class="controls">
-            <button class="fab" id="printBtn" onclick="saveAndPrint()"><i class="fa fa-print"></i> Save & Print</button>
-            <button class="fab" style="background:#64748b" onclick="resetForm()"><i class="fa fa-redo"></i> New Bill</button>
         </div>
     </div>
 
@@ -368,7 +395,7 @@
 
         const btn = document.getElementById('printBtn');
         const oldText = btn.innerHTML;
-        btn.innerHTML = "Syncing...";
+        btn.innerHTML = "<i class='fa fa-spinner fa-spin'></i> Syncing...";
         
         fetch(GOOGLE_SCRIPT_URL, {
             method: "POST", mode: "no-cors",
