@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Care n Cure - Admin System</title>
+    <title>Care n Cure - Hospital ERP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -22,7 +22,7 @@
             overflow: hidden;
         }
 
-        /* SIDEBAR & NAV */
+        /* SIDEBAR */
         .sidebar {
             width: 250px;
             background: var(--dark);
@@ -104,13 +104,9 @@
         .admin-table th { background: #e2e8f0; color: #333; padding: 12px; text-align: left; }
         .admin-table td { padding: 12px; border-bottom: 1px solid #eee; }
         
-        /* ACTION BUTTONS */
         .action-cell { display: flex; gap: 5px; }
         .btn-edit { background: #3b82f6; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
-        .btn-edit:hover { background: #2563eb; }
-        
         .btn-delete { background: var(--danger); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
-        .btn-delete:hover { background: #dc2626; }
 
         /* MODAL */
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
@@ -118,10 +114,8 @@
         .login-input { margin-bottom: 15px; padding: 10px; width: 100%; border: 1px solid #ccc; border-radius: 5px; }
         .btn-login { background: var(--primary); color: white; border: none; padding: 10px 20px; width: 100%; border-radius: 5px; cursor: pointer; font-weight: bold; }
         
-        /* CONTROLS */
         .controls { position: fixed; bottom: 30px; right: 30px; display: flex; gap: 10px; }
         .fab { background: var(--primary); color: white; border: none; padding: 15px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-
         .edit-mode-banner { background: #f59e0b; color: #fff; text-align: center; padding: 5px; font-weight: bold; border-radius: 4px; margin-bottom: 10px; display: none; }
 
         @media print {
@@ -159,7 +153,6 @@
 
     <div id="view-billing" class="view active">
         <div class="invoice-sheet">
-            
             <div id="editBanner" class="edit-mode-banner"><i class="fa fa-edit"></i> EDITING MODE</div>
 
             <div class="header">
@@ -176,11 +169,11 @@
             </div>
 
             <div class="patient-box">
-                <div class="form-group"><label>Patient Name</label><input id="ptName" placeholder="Mr./Mrs. Name"></div>
-                <div class="form-group"><label>Age</label><input id="ptAge" placeholder="25 Yrs"></div>
-                <div class="form-group"><label>Sex</label><input id="ptSex" placeholder="Male/Female"></div>
+                <div class="form-group"><label>Patient Name</label><input id="ptName" placeholder="Name"></div>
+                <div class="form-group"><label>Age</label><input id="ptAge" placeholder="Age"></div>
+                <div class="form-group"><label>Sex</label><input id="ptSex" placeholder="M/F"></div>
                 <div class="row-2">
-                    <div class="form-group"><label>Phone Number</label><input id="ptPhone" placeholder="98XXXXXXXX"></div>
+                    <div class="form-group"><label>Phone Number</label><input id="ptPhone" placeholder="Mobile Number"></div>
                     <div class="form-group"><label>Ref. Doctor</label><input id="ptDoc" placeholder="Dr. Name"></div>
                 </div>
             </div>
@@ -218,12 +211,12 @@
             </div>
             
             <div class="stats-card" style="background:white; padding:20px; border-radius:8px; margin-bottom:20px; border-left:5px solid var(--primary); box-shadow:0 2px 5px rgba(0,0,0,0.1);">
-                <h3 style="margin-top:0; color:#64748b">Total Active Revenue</h3>
+                <h3 style="margin-top:0; color:#64748b">Total Revenue</h3>
                 <div id="stat-revenue" style="font-size:2rem; font-weight:bold; color:#0891b2">₹0</div>
             </div>
 
             <table class="admin-table">
-                <thead><tr><th>Bill #</th><th>Patient</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Bill #</th><th>Patient</th><th>Phone</th><th>Amount</th><th>Actions</th></tr></thead>
                 <tbody id="adminTableBody"></tbody>
             </table>
         </div>
@@ -240,6 +233,7 @@
 </datalist>
 
 <script>
+    // --- UPDATED GOOGLE SCRIPT URL ---
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxd4UmUpFZhvc1nA6n8RRFXnhZI97SYpLFTmFFBf2Iaug2K5T3sH3j9VE7Qnh8IAA/exec";
     
     const testPrices = {
@@ -308,6 +302,8 @@
 
     function saveAndPrint() {
         const patient = document.getElementById('ptName').value;
+        const phone = document.getElementById('ptPhone').value; // Get Phone
+        
         if(!patient) return alert("Please enter Patient Name");
 
         const items = [];
@@ -322,9 +318,9 @@
             id: document.getElementById('billNo').value,
             date: document.getElementById('billDate').value,
             patient: patient,
+            phone: phone, // Save Phone
             age: document.getElementById('ptAge').value,
             sex: document.getElementById('ptSex').value,
-            phone: document.getElementById('ptPhone').value,
             doctor: document.getElementById('ptDoc').value,
             items: items,
             amount: calcTotal(),
@@ -356,7 +352,6 @@
             btn.innerHTML = oldText;
             window.print();
             if(isEditingId) {
-                alert("Bill Updated Successfully");
                 switchView('admin', document.querySelectorAll('.nav-item')[1]);
             } else {
                 resetForm();
@@ -391,10 +386,10 @@
     }
 
     function deleteBill(id) {
-        if(confirm("Are you sure you want to PERMANENTLY DELETE Bill " + id + "?\nThis cannot be undone.")) {
+        if(confirm("Are you sure you want to PERMANENTLY DELETE Bill " + id + "?")) {
             bills = bills.filter(b => b.id !== id);
             localStorage.setItem('cnc_bills', JSON.stringify(bills));
-            loadAdminData(); // Refresh UI
+            loadAdminData();
         }
     }
 
@@ -426,8 +421,8 @@
                 <tr>
                     <td>${bill.id}</td>
                     <td><b>${bill.patient}</b></td>
+                    <td>${bill.phone || '-'}</td>
                     <td>₹${bill.amount}</td>
-                    <td><span style="color:green">Active</span></td>
                     <td class="action-cell">
                         <button class="btn-edit" onclick="editBill('${bill.id}')"><i class="fa fa-pen"></i></button>
                         <button class="btn-delete" onclick="deleteBill('${bill.id}')"><i class="fa fa-trash"></i></button>
