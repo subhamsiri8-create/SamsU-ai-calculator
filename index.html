@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Care n Cure - Hospital ERP</title>
+    <title>Care n Cure - Watermark Bill</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -22,7 +22,7 @@
             overflow: hidden;
         }
 
-        /* SIDEBAR */
+        /* SIDEBAR & NAV */
         .sidebar {
             width: 250px;
             background: var(--dark);
@@ -52,7 +52,7 @@
         .view { display: none; }
         .view.active { display: block; }
 
-        /* INVOICE SHEET */
+        /* INVOICE SHEET CONTAINER */
         .invoice-sheet {
             background: white;
             max-width: 210mm;
@@ -61,15 +61,35 @@
             padding: 20mm;
             box-shadow: 0 0 15px rgba(0,0,0,0.05);
             font-size: 14px;
+            position: relative; /* Needed for watermark positioning */
+            z-index: 1;
+            overflow: hidden; /* Keeps watermark inside */
         }
         
+        /* --- WATERMARK STYLE --- */
+        .watermark {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70%; /* Size of watermark */
+            opacity: 0.08; /* Very faint (8%) */
+            z-index: -1; /* Send to back */
+            pointer-events: none; /* Click through it */
+        }
+        .watermark img { width: 100%; height: auto; }
+        
+        /* CONTENT LAYERS (To sit above watermark) */
+        .header, .patient-box, table, .total-section, .footer { position: relative; z-index: 2; }
+
+        /* HEADER */
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--primary); padding-bottom: 20px; margin-bottom: 20px; }
         .logo-area { width: 100px; margin-right: 20px; }
         .logo-img { width: 100%; height: auto; object-fit: contain; }
         
         .hospital-info { flex: 1; }
-        .hospital-input { font-size: 2.2rem; font-weight: 800; color: var(--primary); border: none; width: 100%; text-transform: uppercase; line-height: 1.2; }
-        .sub-input { font-size: 0.9rem; color: #444; border:none; width: 100%; }
+        .hospital-input { font-size: 2.2rem; font-weight: 800; color: var(--primary); border: none; width: 100%; text-transform: uppercase; line-height: 1.2; background: transparent; }
+        .sub-input { font-size: 0.9rem; color: #444; border:none; width: 100%; background: transparent; }
 
         /* PATIENT GRID */
         .patient-box {
@@ -80,7 +100,8 @@
             display: grid;
             grid-template-columns: 2fr 1fr 1fr;
             gap: 15px;
-            background: #f8fafc;
+            /* background: rgba(248, 250, 252, 0.8);  Semi-transparent background to let watermark show slightly */
+            background: transparent;
         }
         .row-2 { grid-column: span 3; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
@@ -93,10 +114,10 @@
         .form-group input:focus { outline: none; border-bottom: 1px solid var(--primary); }
 
         /* TABLE */
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: transparent; }
         th { background: var(--primary); color: white; padding: 10px; text-align: left; font-size: 0.9rem; text-transform: uppercase; }
         td { border-bottom: 1px solid #eee; padding: 10px; vertical-align: top; }
-        td input { width: 100%; border: none; font-size: 1rem; }
+        td input { width: 100%; border: none; font-size: 1rem; background: transparent; }
         
         /* ADMIN UI */
         .admin-panel { padding: 20px; }
@@ -104,6 +125,7 @@
         .admin-table th { background: #e2e8f0; color: #333; padding: 12px; text-align: left; }
         .admin-table td { padding: 12px; border-bottom: 1px solid #eee; }
         
+        /* BUTTONS */
         .action-cell { display: flex; gap: 5px; }
         .btn-edit { background: #3b82f6; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
         .btn-delete { background: var(--danger); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
@@ -122,7 +144,9 @@
             .sidebar, .controls, .login-overlay, button, .edit-mode-banner { display: none !important; }
             .invoice-sheet { box-shadow: none; margin: 0; width: 100%; padding: 0; }
             body { background: white; }
-            .patient-box { border: 1px solid #000; background: none; }
+            .patient-box { border: 1px solid #000; }
+            /* Ensure watermark prints */
+            .watermark { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             @page { margin: 0; size: A4; }
         }
     </style>
@@ -153,6 +177,11 @@
 
     <div id="view-billing" class="view active">
         <div class="invoice-sheet">
+            
+            <div class="watermark">
+                <img src="logo.png" alt="Watermark">
+            </div>
+
             <div id="editBanner" class="edit-mode-banner"><i class="fa fa-edit"></i> EDITING MODE</div>
 
             <div class="header">
@@ -184,14 +213,14 @@
             </table>
             <button onclick="addBillRow()" style="background:#f1f5f9; border:1px dashed #ccc; width:100%; padding:8px; cursor:pointer; color:#64748b;">+ Add Item</button>
 
-            <div style="display:flex; justify-content:flex-end; margin-top:20px;">
+            <div style="display:flex; justify-content:flex-end; margin-top:20px;" class="total-section">
                 <div style="width:200px; text-align:right;">
                     <span>Total Amount:</span><br>
                     <span id="billTotal" style="font-size:1.5rem; font-weight:bold; color:var(--primary);">₹0.00</span>
                 </div>
             </div>
 
-            <div style="margin-top:50px; display:flex; justify-content:space-between; font-size:0.8rem;">
+            <div class="footer" style="margin-top:50px; display:flex; justify-content:space-between; font-size:0.8rem;">
                 <div style="text-align:center"><div style="border-bottom:1px solid #000; width:120px; margin-bottom:5px;"></div>Patient Sign</div>
                 <div style="text-align:center"><div style="border-bottom:1px solid #000; width:120px; margin-bottom:5px;"></div>Authorized Signatory</div>
             </div>
@@ -211,7 +240,7 @@
             </div>
             
             <div class="stats-card" style="background:white; padding:20px; border-radius:8px; margin-bottom:20px; border-left:5px solid var(--primary); box-shadow:0 2px 5px rgba(0,0,0,0.1);">
-                <h3 style="margin-top:0; color:#64748b">Total Revenue</h3>
+                <h3 style="margin-top:0; color:#64748b">Total Active Revenue</h3>
                 <div id="stat-revenue" style="font-size:2rem; font-weight:bold; color:#0891b2">₹0</div>
             </div>
 
@@ -233,7 +262,6 @@
 </datalist>
 
 <script>
-    // --- UPDATED GOOGLE SCRIPT URL ---
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxd4UmUpFZhvc1nA6n8RRFXnhZI97SYpLFTmFFBf2Iaug2K5T3sH3j9VE7Qnh8IAA/exec";
     
     const testPrices = {
@@ -302,7 +330,7 @@
 
     function saveAndPrint() {
         const patient = document.getElementById('ptName').value;
-        const phone = document.getElementById('ptPhone').value; // Get Phone
+        const phone = document.getElementById('ptPhone').value; 
         
         if(!patient) return alert("Please enter Patient Name");
 
@@ -318,7 +346,7 @@
             id: document.getElementById('billNo').value,
             date: document.getElementById('billDate').value,
             patient: patient,
-            phone: phone, // Save Phone
+            phone: phone, 
             age: document.getElementById('ptAge').value,
             sex: document.getElementById('ptSex').value,
             doctor: document.getElementById('ptDoc').value,
