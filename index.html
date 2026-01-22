@@ -3,25 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MediCode Pro Suite</title>
+    <title>MediCode Ultimate</title>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-dark: #1e40af;
-            --bg: #f3f4f6;
+            --primary: #0891b2; /* Cyan 600 */
+            --primary-dark: #0e7490;
+            --bg: #f8fafc;
             --surface: #ffffff;
-            --text: #1f2937;
-            --text-sec: #6b7280;
-            --border: #e5e7eb;
-            --accent-cpt: #7c3aed;
-            --accent-icd: #059669;
+            --text: #0f172a;
+            --text-sec: #64748b;
+            --border: #e2e8f0;
             --danger: #ef4444;
+            --success: #10b981;
         }
 
         [data-theme="dark"] {
-            --primary: #3b82f6;
-            --primary-dark: #60a5fa;
+            --primary: #22d3ee;
+            --primary-dark: #06b6d4;
             --bg: #0f172a;
             --surface: #1e293b;
             --text: #f1f5f9;
@@ -39,10 +39,10 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            transition: background 0.3s, color 0.3s;
+            overflow: hidden;
         }
 
-        /* --- APP HEADER --- */
+        /* HEADER */
         header {
             background: var(--surface);
             border-bottom: 1px solid var(--border);
@@ -50,374 +50,443 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            z-index: 10;
+            z-index: 20;
         }
-        .brand { font-size: 1.25rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; }
-        .theme-toggle { background: none; border: none; font-size: 1.5rem; color: var(--text-sec); cursor: pointer; }
+        .brand { font-size: 1.3rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .stat-badge { font-size: 0.75rem; background: var(--bg); padding: 4px 8px; border-radius: 12px; border: 1px solid var(--border); color: var(--text-sec); }
 
-        /* --- NAVIGATION --- */
+        /* MAIN */
+        main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 100px 20px; /* Bottom padding for Nav */
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* NAVIGATION */
         nav {
             background: var(--surface);
             display: flex;
             justify-content: space-around;
-            padding: 10px 0;
+            padding: 12px 0;
             border-top: 1px solid var(--border);
             position: fixed;
             bottom: 0;
             width: 100%;
-            z-index: 20;
+            z-index: 30;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
         }
         .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-sec);
             background: none;
             border: none;
             cursor: pointer;
             gap: 4px;
         }
-        .nav-item i { font-size: 1.5rem; }
+        .nav-item i { font-size: 1.6rem; margin-bottom: 2px; }
         .nav-item.active { color: var(--primary); font-weight: 600; }
 
-        /* --- MAIN CONTENT --- */
-        main {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            padding-bottom: 80px; /* Space for nav */
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .view { display: none; animation: fadeIn 0.2s; }
-        .view.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* --- SEARCH BAR --- */
-        .search-wrapper {
+        /* SEARCH AREA */
+        .search-container {
             position: sticky;
             top: 0;
             background: var(--bg);
-            padding-bottom: 15px;
-            z-index: 5;
+            padding: 20px 0;
+            z-index: 10;
+        }
+        .search-input-wrapper {
+            position: relative;
         }
         .search-input {
             width: 100%;
-            padding: 16px 20px;
-            border-radius: 12px;
+            padding: 16px 20px 16px 50px;
+            border-radius: 16px;
             border: 1px solid var(--border);
             background: var(--surface);
             color: var(--text);
-            font-size: 1rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            font-size: 1.1rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
             outline: none;
+            transition: all 0.2s;
         }
-        .search-input:focus { border-color: var(--primary); ring: 2px solid var(--primary); }
+        .search-input:focus { border-color: var(--primary); box-shadow: 0 4px 25px rgba(8, 145, 178, 0.15); }
+        .search-icon { position: absolute; left: 18px; top: 18px; color: var(--text-sec); font-size: 1.2rem; }
 
-        /* --- CARDS --- */
+        /* LIST CARDS */
         .code-card {
             background: var(--surface);
             border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
+            padding: 18px;
+            margin-bottom: 15px;
             border: 1px solid var(--border);
             position: relative;
-            transition: transform 0.1s;
+            animation: fadeIn 0.3s ease;
         }
-        .code-card:active { transform: scale(0.98); }
-        
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-        .badge { 
-            padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; font-family: monospace; 
-        }
-        .icd { background: rgba(5, 150, 105, 0.1); color: var(--accent-icd); }
-        .cpt { background: rgba(124, 58, 237, 0.1); color: var(--accent-cpt); }
-        
-        .action-btn { background: none; border: none; font-size: 1.2rem; color: var(--text-sec); cursor: pointer; padding: 4px; }
-        .action-btn.starred { color: #eab308; } /* Yellow Star */
-        
-        .card-desc { font-weight: 500; margin-bottom: 4px; line-height: 1.4; }
-        .card-meta { font-size: 0.8rem; color: var(--text-sec); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- DECODER --- */
-        .decoder-input {
-            width: 100%;
-            text-align: center;
-            font-size: 2rem;
-            padding: 20px;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            margin-bottom: 20px;
-            border: 2px dashed var(--border);
+        .card-top { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .code-pill { 
+            padding: 5px 10px; border-radius: 8px; font-weight: 800; font-family: monospace; font-size: 1rem; letter-spacing: 0.5px;
+        }
+        .pill-icd { background: rgba(16, 185, 129, 0.1); color: #059669; }
+        .pill-cpt { background: rgba(124, 58, 237, 0.1); color: #7c3aed; }
+        
+        .card-actions { display: flex; gap: 10px; }
+        .icon-btn { background: none; border: none; cursor: pointer; color: var(--text-sec); font-size: 1.2rem; padding: 0; }
+        .icon-btn:hover { color: var(--primary); }
+        .icon-btn.saved { color: #f59e0b; }
+
+        .card-desc { font-size: 1rem; font-weight: 500; line-height: 1.4; margin-bottom: 6px; }
+        .card-meta { font-size: 0.8rem; color: var(--text-sec); display: flex; gap: 10px; }
+
+        /* VIEWS */
+        .view { display: none; }
+        .view.active { display: block; }
+
+        /* DATA MANAGEMENT STYLES */
+        .settings-panel {
             background: var(--surface);
-            color: var(--text);
+            padding: 20px;
             border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
         }
-        .blocks { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
-        .block { background: var(--surface); padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
-        .block strong { display: block; font-size: 1.2rem; color: var(--primary); }
-        .block span { font-size: 0.7rem; color: var(--text-sec); text-transform: uppercase; }
-
-        /* --- ADD NEW FORM --- */
-        .form-group { margin-bottom: 15px; }
-        .form-label { display: block; font-size: 0.9rem; margin-bottom: 5px; color: var(--text-sec); }
-        .form-control { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
-        .btn-primary { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; }
-        .btn-outline { width: 100%; padding: 15px; background: transparent; border: 2px solid var(--border); color: var(--text); border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-primary { 
+            background: var(--primary); color: white; width: 100%; padding: 15px; 
+            border: none; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 10px;
+        }
+        .btn-outline {
+            background: transparent; border: 2px solid var(--border); color: var(--text);
+            width: 100%; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 10px;
+        }
+        .file-input-wrapper {
+            border: 2px dashed var(--border);
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px;
+            margin-top: 15px;
+            cursor: pointer;
+        }
+        .file-input-wrapper:hover { border-color: var(--primary); background: rgba(8, 145, 178, 0.05); }
 
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="brand"><i class="ph ph-first-aid"></i> MediCode Pro</div>
-        <button class="theme-toggle" onclick="toggleTheme()"><i class="ph ph-moon"></i></button>
-    </header>
+<header>
+    <div class="brand"><i class="ph ph-heartbeat"></i> MediCode Ultimate</div>
+    <div class="stat-badge" id="dbCount">Loading...</div>
+</header>
 
-    <main>
-        <div id="view-search" class="view active">
-            <div class="search-wrapper">
-                <input type="text" id="searchInput" class="search-input" placeholder="Search codes, diseases, CPT..." onkeyup="handleSearch()">
+<main>
+    <div id="view-search" class="view active">
+        <div class="search-container">
+            <div class="search-input-wrapper">
+                <i class="ph ph-magnifying-glass search-icon"></i>
+                <input type="text" id="searchBox" class="search-input" placeholder="Search conditions, CPT, ICD..." onkeyup="handleSearch()">
             </div>
-            <div id="resultsList"></div>
+            <div style="display:flex; gap:10px; margin-top:10px; overflow-x:auto; padding-bottom:5px;">
+                <button class="stat-badge" onclick="filterCat('All')">All</button>
+                <button class="stat-badge" onclick="filterCat('Cardio')">Cardio</button>
+                <button class="stat-badge" onclick="filterCat('Resp')">Resp</button>
+                <button class="stat-badge" onclick="filterCat('Ortho')">Ortho</button>
+                <button class="stat-badge" onclick="filterCat('Trauma')">Trauma</button>
+            </div>
+        </div>
+        <div id="resultsList"></div>
+    </div>
+
+    <div id="view-saved" class="view">
+        <h2 style="display:flex; align-items:center; gap:10px;"><i class="ph ph-star-fill" style="color:#f59e0b"></i> Favorites</h2>
+        <div id="savedList"></div>
+        <button class="btn-outline" onclick="exportFavorites()"><i class="ph ph-export"></i> Export Favorites to CSV</button>
+    </div>
+
+    <div id="view-data" class="view">
+        <h2><i class="ph ph-database"></i> Data Management</h2>
+        
+        <div class="settings-panel">
+            <h3><i class="ph ph-upload-simple"></i> Import Full Database</h3>
+            <p style="font-size:0.9rem; color:var(--text-sec); margin-bottom:15px;">
+                Upload a CSV file to add thousands of codes instantly. 
+                <br>Format: <code>Code, Description, Type, Category</code>
+            </p>
+            <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="handleFileUpload(this)">
+            <div class="file-input-wrapper" onclick="document.getElementById('csvFile').click()">
+                <i class="ph ph-file-csv" style="font-size:2rem; color:var(--text-sec)"></i>
+                <div style="margin-top:5px; font-weight:600;">Tap to Upload CSV</div>
+            </div>
+            <p id="uploadStatus" style="font-size:0.8rem; text-align:center; margin-top:10px; color:var(--primary);"></p>
         </div>
 
-        <div id="view-saved" class="view">
-            <h2><i class="ph ph-star-fill" style="color:#eab308"></i> My Favorites</h2>
-            <p style="color:var(--text-sec); font-size:0.9rem;">Your personal collection of codes.</p>
-            <div id="savedList"></div>
-            <button class="btn-outline" onclick="exportData()"><i class="ph ph-download-simple"></i> Export to CSV</button>
+        <div class="settings-panel">
+            <h3><i class="ph ph-plus-circle"></i> Add Single Code</h3>
+            <input type="text" id="newCode" class="search-input" placeholder="Code (e.g. Z99)" style="margin-bottom:10px; padding:10px;">
+            <input type="text" id="newDesc" class="search-input" placeholder="Description" style="margin-bottom:10px; padding:10px;">
+            <select id="newCat" class="search-input" style="padding:10px;">
+                <option value="General">General</option>
+                <option value="Cardio">Cardiology</option>
+                <option value="Resp">Respiratory</option>
+                <option value="Trauma">Trauma</option>
+            </select>
+            <button class="btn-primary" onclick="addSingleCode()">Add to Library</button>
         </div>
 
-        <div id="view-decoder" class="view">
-            <h2>Code Breaker</h2>
-            <p style="color:var(--text-sec)">Visualize the structure of ICD-10 codes.</p>
-            <input type="text" id="decoderInput" class="decoder-input" placeholder="S52501A" maxlength="8" onkeyup="decodeCode()">
-            <div id="decoderBlocks" class="blocks"></div>
-            <p id="decoderText" style="text-align:center; margin-top:20px; color:var(--text-sec); font-style:italic;"></p>
+        <div class="settings-panel" style="border-color:var(--danger)">
+            <h3 style="color:var(--danger)">Danger Zone</h3>
+            <button class="btn-outline" style="border-color:var(--danger); color:var(--danger)" onclick="resetDb()">Factory Reset Database</button>
         </div>
+    </div>
+</main>
 
-        <div id="view-add" class="view">
-            <h2>Add Custom Code</h2>
-            <div class="form-group">
-                <label class="form-label">Code (ICD-10 or CPT)</label>
-                <input type="text" id="newCode" class="form-control" placeholder="e.g. Z99.9">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Description</label>
-                <input type="text" id="newDesc" class="form-control" placeholder="e.g. Dependence on unspecified machine">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Type</label>
-                <select id="newType" class="form-control">
-                    <option value="ICD-10">ICD-10 (Diagnosis)</option>
-                    <option value="CPT">CPT (Procedure)</option>
-                </select>
-            </div>
-            <button class="btn-primary" onclick="addCustomCode()">Save to Database</button>
-        </div>
-    </main>
-
-    <nav>
-        <button class="nav-item active" onclick="switchView('search', this)">
-            <i class="ph ph-magnifying-glass"></i> Search
-        </button>
-        <button class="nav-item" onclick="switchView('saved', this)">
-            <i class="ph ph-bookmarks"></i> Saved
-        </button>
-        <button class="nav-item" onclick="switchView('decoder', this)">
-            <i class="ph ph-magic-wand"></i> Decoder
-        </button>
-        <button class="nav-item" onclick="switchView('add', this)">
-            <i class="ph ph-plus-circle"></i> Add
-        </button>
-    </nav>
+<nav>
+    <button class="nav-item active" onclick="switchView('search', this)">
+        <i class="ph ph-magnifying-glass"></i> Search
+    </button>
+    <button class="nav-item" onclick="switchView('saved', this)">
+        <i class="ph ph-bookmarks"></i> Saved
+    </button>
+    <button class="nav-item" onclick="switchView('data', this)">
+        <i class="ph ph-gear"></i> Manage
+    </button>
+</nav>
 
 <script>
-    // --- DATABASE INITIALIZATION ---
-    // A larger starter set of common codes
-    const defaultData = [
-        { id: 1, code: "I10", type: "ICD-10", desc: "Essential (primary) hypertension", cat: "Cardio" },
-        { id: 2, code: "E11.9", type: "ICD-10", desc: "Type 2 diabetes mellitus without complications", cat: "Endo" },
-        { id: 3, code: "99213", type: "CPT", desc: "Office visit, established patient (20-29 min)", cat: "E&M" },
-        { id: 4, code: "99214", type: "CPT", desc: "Office visit, established patient (30-39 min)", cat: "E&M" },
-        { id: 5, code: "J01.90", type: "ICD-10", desc: "Acute sinusitis, unspecified", cat: "Resp" },
-        { id: 6, code: "M54.5", type: "ICD-10", desc: "Low back pain", cat: "Ortho" },
-        { id: 7, code: "Z00.00", type: "ICD-10", desc: "General adult medical exam w/o abnormal findings", cat: "Admin" },
-        { id: 8, code: "U07.1", type: "ICD-10", desc: "COVID-19", cat: "Viral" },
-        { id: 9, code: "73030", type: "CPT", desc: "X-ray of shoulder, minimum of 2 views", cat: "Rad" },
-        { id: 10, code: "F41.1", type: "ICD-10", desc: "Generalized anxiety disorder", cat: "Psych" },
-        { id: 11, code: "R05", type: "ICD-10", desc: "Cough", cat: "Symp" },
-        { id: 12, code: "R50.9", type: "ICD-10", desc: "Fever, unspecified", cat: "Symp" }
+    // --- 1. THE "REAL" STARTER DATASET (Top 60 Common Codes) ---
+    const starterPack = [
+        // GENERAL / INFECTION
+        {c:"U07.1", d:"COVID-19", t:"ICD", cat:"Resp"},
+        {c:"J09.X2", d:"Influenza A", t:"ICD", cat:"Resp"},
+        {c:"A41.9", d:"Sepsis, unspecified organism", t:"ICD", cat:"Infection"},
+        {c:"E11.9", d:"Type 2 Diabetes w/o complications", t:"ICD", cat:"Endo"},
+        {c:"E78.5", d:"Hyperlipidemia, unspecified", t:"ICD", cat:"Endo"},
+        
+        // CARDIO
+        {c:"I10", d:"Essential (primary) hypertension", t:"ICD", cat:"Cardio"},
+        {c:"I21.9", d:"Acute myocardial infarction (Heart Attack)", t:"ICD", cat:"Cardio"},
+        {c:"I48.91", d:"Unspecified atrial fibrillation", t:"ICD", cat:"Cardio"},
+        {c:"I50.9", d:"Heart failure, unspecified", t:"ICD", cat:"Cardio"},
+        
+        // RESPIRATORY
+        {c:"J44.9", d:"COPD, unspecified", t:"ICD", cat:"Resp"},
+        {c:"J18.9", d:"Pneumonia, unspecified organism", t:"ICD", cat:"Resp"},
+        {c:"J45.909", d:"Unspecified asthma, uncomplicated", t:"ICD", cat:"Resp"},
+        
+        // TRAUMA / ORTHO
+        {c:"S72.001A", d:"Fracture of neck of right femur", t:"ICD", cat:"Ortho"},
+        {c:"S06.0X0A", d:"Concussion without loss of consciousness", t:"ICD", cat:"Trauma"},
+        {c:"M54.5", d:"Low back pain", t:"ICD", cat:"Ortho"},
+        {c:"M25.561", d:"Pain in right knee", t:"ICD", cat:"Ortho"},
+        
+        // MENTAL
+        {c:"F41.1", d:"Generalized anxiety disorder", t:"ICD", cat:"Psych"},
+        {c:"F32.9", d:"Major depressive disorder, single episode", t:"ICD", cat:"Psych"},
+        
+        // COMMON CPT (PROCEDURES)
+        {c:"99203", d:"Office visit New Patient (30-44 min)", t:"CPT", cat:"E&M"},
+        {c:"99213", d:"Office visit Est Patient (20-29 min)", t:"CPT", cat:"E&M"},
+        {c:"99214", d:"Office visit Est Patient (30-39 min)", t:"CPT", cat:"E&M"},
+        {c:"99283", d:"Emergency Dept Visit (Moderate)", t:"CPT", cat:"E&M"},
+        {c:"99285", d:"Emergency Dept Visit (High Severity)", t:"CPT", cat:"E&M"},
+        {c:"71045", d:"Chest X-ray, 1 view", t:"CPT", cat:"Rad"},
+        {c:"71046", d:"Chest X-ray, 2 views", t:"CPT", cat:"Rad"},
+        {c:"36415", d:"Collection of venous blood (Venipuncture)", t:"CPT", cat:"Lab"},
+        {c:"85025", d:"CBC (Complete Blood Count)", t:"CPT", cat:"Lab"},
+        {c:"80053", d:"Comprehensive Metabolic Panel", t:"CPT", cat:"Lab"},
+        {c:"93000", d:"EKG (Electrocardiogram)", t:"CPT", cat:"Cardio"}
     ];
 
-    // Load Data from LocalStorage or use Default
-    let db = JSON.parse(localStorage.getItem('medicode_db')) || defaultData;
-    let savedIds = JSON.parse(localStorage.getItem('medicode_saved')) || [];
+    // --- 2. STATE MANAGEMENT ---
+    let db = [];
+    let saved = [];
 
-    // --- RENDER FUNCTIONS ---
-    function renderList(data, containerId, isSavedView = false) {
-        const container = document.getElementById(containerId);
+    function init() {
+        // Load from LocalStorage
+        const storedDb = localStorage.getItem('medi_db');
+        const storedSaved = localStorage.getItem('medi_saved');
+
+        if (storedDb) {
+            db = JSON.parse(storedDb);
+        } else {
+            // First time load: Use starter pack
+            db = starterPack;
+            saveDb();
+        }
+
+        if (storedSaved) saved = JSON.parse(storedSaved);
+
+        updateCount();
+        handleSearch();
+    }
+
+    function saveDb() {
+        localStorage.setItem('medi_db', JSON.stringify(db));
+        updateCount();
+    }
+
+    function updateCount() {
+        document.getElementById('dbCount').innerText = `${db.length} Codes`;
+    }
+
+    // --- 3. SEARCH & RENDER ---
+    function handleSearch() {
+        const query = document.getElementById('searchBox').value.toLowerCase();
+        const resultsDiv = document.getElementById('resultsList');
+        
+        // Limit results to 50 for performance if query is empty
+        let limit = query === '' ? 50 : 200;
+        
+        const filtered = db.filter(item => 
+            item.c.toLowerCase().includes(query) || 
+            item.d.toLowerCase().includes(query)
+        ).slice(0, limit);
+
+        renderCards(filtered, resultsDiv);
+    }
+
+    function filterCat(cat) {
+        document.getElementById('searchBox').value = cat === 'All' ? '' : cat;
+        handleSearch();
+    }
+
+    function renderCards(data, container) {
         container.innerHTML = '';
-
-        if (data.length === 0) {
-            container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-sec)">No codes found.</div>`;
+        if(data.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-sec)">No results found.<br><small>Try importing a full CSV in settings.</small></div>`;
             return;
         }
 
         data.forEach(item => {
-            const isSaved = savedIds.includes(item.id);
-            // If we are in "Saved View" and item isn't saved, skip it
-            if (isSavedView && !isSaved) return;
-
+            const isSaved = saved.includes(item.c);
             const html = `
                 <div class="code-card">
-                    <div class="card-header">
-                        <span class="badge ${item.type === 'CPT' ? 'cpt' : 'icd'}">${item.code}</span>
-                        <div>
-                            <button class="action-btn" onclick="copyToClipboard('${item.code}')"><i class="ph ph-copy"></i></button>
-                            <button class="action-btn ${isSaved ? 'starred' : ''}" onclick="toggleSave(${item.id})">
+                    <div class="card-top">
+                        <span class="code-pill ${item.t === 'ICD' ? 'pill-icd' : 'pill-cpt'}">${item.c}</span>
+                        <div class="card-actions">
+                            <button class="icon-btn" onclick="copyCode('${item.c}')"><i class="ph ph-copy"></i></button>
+                            <button class="icon-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${item.c}')">
                                 <i class="ph ${isSaved ? 'ph-star-fill' : 'ph-star'}"></i>
                             </button>
                         </div>
                     </div>
-                    <div class="card-desc">${item.desc}</div>
-                    <div class="card-meta">${item.type} • ${item.cat}</div>
+                    <div class="card-desc">${item.d}</div>
+                    <div class="card-meta">
+                        <span><i class="ph ph-tag"></i> ${item.cat || 'General'}</span>
+                        <span><i class="ph ph-files"></i> ${item.t}</span>
+                    </div>
                 </div>
             `;
             container.innerHTML += html;
         });
     }
 
-    // --- LOGIC: SEARCH & SAVE ---
-    function handleSearch() {
-        const query = document.getElementById('searchInput').value.toLowerCase();
-        const filtered = db.filter(item => 
-            item.code.toLowerCase().includes(query) || 
-            item.desc.toLowerCase().includes(query)
-        );
-        renderList(filtered, 'resultsList');
-    }
-
-    function toggleSave(id) {
-        if (savedIds.includes(id)) {
-            savedIds = savedIds.filter(sid => sid !== id); // Remove
+    // --- 4. SAVED / FAVORITES ---
+    function toggleSave(code) {
+        if(saved.includes(code)) {
+            saved = saved.filter(c => c !== code);
         } else {
-            savedIds.push(id); // Add
+            saved.push(code);
         }
-        localStorage.setItem('medicode_saved', JSON.stringify(savedIds));
+        localStorage.setItem('medi_saved', JSON.stringify(saved));
         
-        // Refresh views
-        handleSearch(); 
-        renderList(db, 'savedList', true);
-    }
-
-    function addCustomCode() {
-        const code = document.getElementById('newCode').value;
-        const desc = document.getElementById('newDesc').value;
-        const type = document.getElementById('newType').value;
-
-        if (!code || !desc) return alert("Please fill in fields");
-
-        const newItem = {
-            id: Date.now(), // Generate unique ID based on time
-            code: code.toUpperCase(),
-            desc: desc,
-            type: type,
-            cat: "Custom"
-        };
-
-        db.unshift(newItem); // Add to top of list
-        localStorage.setItem('medicode_db', JSON.stringify(db)); // Save to persistence
-        
-        alert("Code Added!");
-        // Reset form
-        document.getElementById('newCode').value = '';
-        document.getElementById('newDesc').value = '';
-        
-        // Go to search
-        switchView('search', document.querySelectorAll('.nav-item')[0]);
+        // Refresh UI
         handleSearch();
+        renderSaved();
     }
 
-    // --- UTILS: EXPORT & COPY ---
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text);
-        alert(`Copied: ${text}`);
+    function renderSaved() {
+        const savedItems = db.filter(item => saved.includes(item.c));
+        renderCards(savedItems, document.getElementById('savedList'));
     }
 
-    function exportData() {
-        const savedItems = db.filter(item => savedIds.includes(item.id));
-        if (savedItems.length === 0) return alert("No favorites to export.");
-
-        let csvContent = "data:text/csv;charset=utf-8,Code,Description,Type\n";
-        savedItems.forEach(item => {
-            csvContent += `${item.code},"${item.desc}",${item.type}\n`;
-        });
-
-        const encodedUri = encodeURI(csvContent);
+    function exportFavorites() {
+        const savedItems = db.filter(item => saved.includes(item.c));
+        const csv = Papa.unparse(savedItems);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "my_medical_codes.csv");
-        document.body.appendChild(link);
+        link.href = URL.createObjectURL(blob);
+        link.download = "my_favorites.csv";
         link.click();
     }
 
-    // --- DECODER LOGIC ---
-    function decodeCode() {
-        const code = document.getElementById('decoderInput').value.toUpperCase().replace('.','');
-        const blocks = document.getElementById('decoderBlocks');
-        const text = document.getElementById('decoderText');
-        blocks.innerHTML = '';
-        text.innerText = '';
-
-        if(code.length < 3) return;
-
-        // Visual logic for ICD-10
-        const p1 = code.substring(0,3); // Category
-        const p2 = code.substring(3,6); // Etiology
-        const p3 = code.substring(6,7); // Extension
-
-        blocks.innerHTML += `<div class="block"><strong>${p1}</strong><span>Category</span></div>`;
+    // --- 5. DATA IMPORT / ADD ---
+    function addSingleCode() {
+        const c = document.getElementById('newCode').value;
+        const d = document.getElementById('newDesc').value;
+        const cat = document.getElementById('newCat').value;
         
-        if (code.length > 3) {
-            blocks.innerHTML += `<div class="block"><strong>${p2}</strong><span>Detail/Site</span></div>`;
-        }
-        if (code.length > 6) {
-            blocks.innerHTML += `<div class="block" style="border-color:var(--primary)"><strong>${p3}</strong><span>Encounter</span></div>`;
-            if (p3 === 'A') text.innerText = "Initial Encounter: Active treatment phase.";
-            if (p3 === 'D') text.innerText = "Subsequent Encounter: Recovery/Healing phase.";
-            if (p3 === 'S') text.innerText = "Sequela: Complications arising after healing.";
+        if(!c || !d) return alert("Fill all fields");
+
+        db.unshift({c: c.toUpperCase(), d: d, t: "Custom", cat: cat});
+        saveDb();
+        alert("Code Added!");
+        switchView('search', document.querySelector('.nav-item'));
+        handleSearch();
+    }
+
+    function handleFileUpload(input) {
+        const file = input.files[0];
+        if(!file) return;
+
+        document.getElementById('uploadStatus').innerText = "Parsing file...";
+
+        Papa.parse(file, {
+            header: true,
+            complete: function(results) {
+                // Expects CSV headers: Code, Description, Type, Category
+                // Map to internal format
+                const newRows = results.data.map(row => ({
+                    c: row.Code || row.code || "UNKNOWN",
+                    d: row.Description || row.description || "No Desc",
+                    t: row.Type || row.type || "Import",
+                    cat: row.Category || row.category || "General"
+                })).filter(r => r.c !== "UNKNOWN");
+
+                db = [...newRows, ...db]; // Merge new data
+                saveDb();
+                document.getElementById('uploadStatus').innerText = `Success! Added ${newRows.length} codes.`;
+                updateCount();
+            },
+            error: function() {
+                alert("Error reading CSV.");
+            }
+        });
+    }
+
+    function resetDb() {
+        if(confirm("Delete all data and reset to starter pack?")) {
+            db = starterPack;
+            saved = [];
+            saveDb();
+            localStorage.setItem('medi_saved', JSON.stringify([]));
+            location.reload();
         }
     }
 
-    // --- APP NAVIGATION ---
-    function switchView(viewName, btnElement) {
-        // Hide all views
+    function copyCode(text) {
+        navigator.clipboard.writeText(text);
+        alert("Copied " + text);
+    }
+
+    // --- 6. NAVIGATION ---
+    function switchView(viewName, btn) {
         document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
         document.getElementById('view-' + viewName).classList.add('active');
         
-        // Update Nav
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        if (btnElement) btnElement.classList.add('active');
+        if(btn) btn.classList.add('active');
 
-        // Special render for saved list
-        if (viewName === 'saved') renderList(db, 'savedList', true);
+        if(viewName === 'saved') renderSaved();
     }
 
-    // --- THEME ---
-    function toggleTheme() {
-        const current = document.body.getAttribute('data-theme');
-        const newTheme = current === 'dark' ? 'light' : 'dark';
-        document.body.setAttribute('data-theme', newTheme);
-    }
-
-    // Init
-    handleSearch();
+    // START
+    window.onload = init;
 
 </script>
 </body>
