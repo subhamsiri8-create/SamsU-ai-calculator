@@ -3,273 +3,306 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Infinity Calc AI</title>
+    <title>Cosmic Omni-Calc</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.0/math.js"></script>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    
     <style>
         :root {
-            --bg: #000000;
-            --panel: #0a0a0a;
+            --bg-dark: #050505;
+            --bg-panel: #111;
+            --text-main: #e0e0e0;
+            --accent: #7c3aed; /* Cosmological Purple */
+            --accent-glow: rgba(124, 58, 237, 0.3);
             --border: #333;
-            --text: #e5e5e5;
-            --accent: #00ffa3;
-            --error: #ff4444;
+            --btn-bg: #1f1f1f;
         }
+
         body {
-            font-family: 'Courier New', monospace;
-            background: var(--bg);
-            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
         }
-        .main-window {
+
+        .container {
             width: 100%;
             max-width: 900px;
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            box-shadow: 0 0 40px rgba(0, 255, 163, 0.05);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            gap: 15px;
         }
-        .screen {
-            padding: 30px;
+
+        /* HEADER & TABS */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             border-bottom: 1px solid var(--border);
-            min-height: 100px;
+            padding-bottom: 15px;
+        }
+        h1 { margin: 0; font-size: 1.5rem; letter-spacing: 1px; color: var(--accent); }
+        
+        .mode-select {
+            background: var(--btn-bg);
+            color: white;
+            padding: 8px 15px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        /* INPUT AREA */
+        #command-line {
+            width: 100%;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 20px;
+            font-size: 1.4rem;
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+            box-sizing: border-box; /* Fix padding width issue */
+        }
+        #command-line:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); outline: none; }
+
+        /* RESULT AREA */
+        #output {
+            background: rgba(255,255,255,0.03);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: right;
+            min-height: 50px;
+            font-size: 1.8rem;
+            color: var(--accent);
+            word-break: break-all;
+        }
+        .sub-output { font-size: 0.9rem; color: #888; margin-top: 5px; }
+
+        /* DYNAMIC BUTTONS GRID */
+        .controls-title { font-size: 0.8rem; text-transform: uppercase; color: #666; margin-top: 10px; }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+        }
+
+        button {
+            background: var(--btn-bg);
+            border: 1px solid #333;
+            color: #ccc;
+            padding: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+            border-radius: 6px;
+            font-size: 0.9rem;
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
-            align-items: flex-end;
+            align-items: center;
+            gap: 5px;
         }
-        .query-echo { font-size: 0.9rem; color: #666; margin-bottom: 10px; }
-        .answer { font-size: 2.5rem; color: var(--accent); font-weight: bold; word-wrap: break-word; text-align: right;}
+        button:hover { background: #2d2d2d; border-color: var(--accent); color: white; }
+        button span { font-size: 0.7rem; color: #666; } /* Description text */
         
-        .input-area {
-            display: flex;
-            border-top: 1px solid var(--border);
-        }
-        input {
-            flex: 1;
-            background: #111;
-            border: none;
-            color: white;
-            padding: 20px;
-            font-size: 1.2rem;
-            outline: none;
-            font-family: 'Courier New', monospace;
-        }
-        button#run {
-            background: var(--accent);
-            color: black;
-            border: none;
-            padding: 0 30px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1.2rem;
-        }
-        button#run:hover { background: #00cc82; }
+        .btn-calc { background: var(--accent); color: white; font-weight: bold; }
+        .btn-calc:hover { background: #6d28d9; }
 
-        .suggestions {
-            display: flex;
-            gap: 10px;
-            padding: 10px;
-            background: #050505;
-            overflow-x: auto;
+        /* GRAPHING */
+        #plot-area {
+            width: 100%;
+            height: 350px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: none;
         }
-        .chip {
-            background: #222;
-            color: #888;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            white-space: nowrap;
-            cursor: pointer;
-            border: 1px solid #333;
-        }
-        .chip:hover { border-color: var(--accent); color: var(--accent); }
 
-        #plot-box { width: 100%; height: 300px; display: none; background: #000; }
-        
-        .fallback-btn {
-            background: #333; color: white; border: 1px solid white; 
-            padding: 5px 10px; margin-top: 5px; cursor: pointer; text-decoration: none;
-            font-size: 0.8rem; display: inline-block;
-        }
     </style>
 </head>
 <body>
 
-<div class="main-window">
-    <div class="screen">
-        <div class="query-echo" id="echo">Waiting for input...</div>
-        <div class="answer" id="result">0</div>
-        <div id="plot-box"></div>
+<div class="container">
+    <div class="header">
+        <h1>COSMOS CALC</h1>
+        <select id="mode-selector" class="mode-select" onchange="changeMode()">
+            <option value="general">General Math</option>
+            <option value="classical">Classical (Newton)</option>
+            <option value="relativity">Relativity (Einstein)</option>
+            <option value="quantum">Quantum (Planck)</option>
+            <option value="cosmos">Cosmology (Hubble/Hawking)</option>
+        </select>
     </div>
 
-    <div class="suggestions">
-        <div class="chip" onclick="setInput('mass_earth')">Earth Mass</div>
-        <div class="chip" onclick="setInput('Au')">Gold Mass</div>
-        <div class="chip" onclick="setInput('c')">Speed of Light</div>
-        <div class="chip" onclick="setInput('100 usd to eur')">Currency</div>
-        <div class="chip" onclick="setInput('plot(sin(x))')">Graph</div>
-        <div class="chip" onclick="setInput('solve(2x=10)')">Algebra</div>
+    <div id="output">
+        <div id="result-text">0</div>
+        <div class="sub-output" id="result-history">Ready for calculation...</div>
     </div>
 
-    <div class="input-area">
-        <input type="text" id="input" placeholder="Ask anything (e.g. 'What is the mass of the moon?')" autocomplete="off">
-        <button id="run" onclick="solve()">ASK</button>
+    <div id="plot-area"></div>
+
+    <input type="text" id="command-line" placeholder="Enter equation..." autocomplete="off">
+
+    <div class="controls-title" id="controls-label">General Controls</div>
+    <div class="grid" id="button-grid">
+        </div>
+    
+    <div class="grid" style="margin-top: 15px; border-top: 1px solid #333; padding-top: 15px;">
+        <button class="btn-calc" onclick="runCalc()">CALCULATE [Enter]</button>
+        <button onclick="clearAll()">CLEAR</button>
     </div>
 </div>
 
 <script>
+    const inputEl = document.getElementById('command-line');
+    const resultEl = document.getElementById('result-text');
+    const historyEl = document.getElementById('result-history');
+    const gridEl = document.getElementById('button-grid');
+    const labelEl = document.getElementById('controls-label');
+    const plotEl = document.getElementById('plot-area');
+
+    // Define Scientific Constants in Math.js Scope
     const parser = math.parser();
-    const resultEl = document.getElementById('result');
-    const echoEl = document.getElementById('echo');
-    const inputEl = document.getElementById('input');
-    const plotBox = document.getElementById('plot-box');
+    parser.evaluate('c = 299792458'); // Speed of Light
+    parser.evaluate('G = 6.67430e-11'); // Gravitational Constant
+    parser.evaluate('h = 6.62607015e-34'); // Planck Constant
+    parser.evaluate('H0 = 2.2e-18'); // Hubble Constant (approx SI)
+    parser.evaluate('M_sun = 1.989e30'); // Mass of Sun
+    parser.evaluate('AU = 1.496e11'); // Astronomical Unit
 
-    // 1. LOAD KNOWLEDGE BASE (The "Brain")
-    function loadKnowledge() {
-        // Physics
-        parser.evaluate('c = 2.99792e8 m/s');
-        parser.evaluate('G = 6.674e-11');
-        parser.evaluate('h = 6.626e-34');
-        parser.evaluate('g = 9.80665 m/s^2'); // Earth Gravity
+    // BUTTON LAYOUTS
+    const layouts = {
+        general: [
+            { text: "Plot Graph", code: "plot(x^2)", desc: "Draw charts" },
+            { text: "Derivative", code: "derivative('x^2', 'x')", desc: "Calculus" },
+            { text: "Matrix Det", code: "det([[1,2],[3,4]])", desc: "Linear Algebra" },
+            { text: "Simplify", code: "simplify('2x + x')", desc: "Algebra" },
+            { text: "Unit Convert", code: "100 km/h to m/s", desc: "Converter" },
+            { text: "Complex", code: "sqrt(-4)", desc: "Imaginary Nums" }
+        ],
+        classical: [
+            { text: "Force (Newton)", code: "5 kg * 9.8 m/s^2", desc: "F = ma" },
+            { text: "Gravity Force", code: "(G * 5e24 kg * 70 kg) / (6371 km)^2", desc: "F = GmM/r^2" },
+            { text: "Kinetic Energy", code: "0.5 * 10 kg * (20 m/s)^2", desc: "E = 1/2 mv^2" },
+            { text: "Momentum", code: "10 kg * 15 m/s", desc: "p = mv" },
+            { text: "Escape Velocity", code: "sqrt(2 * G * 5.97e24 / 6371000)", desc: "v = sqrt(2GM/r)" }
+        ],
+        relativity: [
+            { text: "Energy (E=mc²)", code: "1 kg * c^2", desc: "Mass-Energy" },
+            { text: "Time Dilation", code: "10 s / sqrt(1 - (0.9)^2)", desc: "at 90% light speed" },
+            { text: "Lorentz Factor", code: "1 / sqrt(1 - 0.5^2)", desc: "Gamma (γ)" },
+            { text: "Length Contract", code: "100 m * sqrt(1 - 0.8^2)", desc: "Moving objects shrink" }
+        ],
+        quantum: [
+            { text: "Photon Energy", code: "h * 5e14 Hz", desc: "E = hf" },
+            { text: "Wavelength", code: "c / 5e14 Hz", desc: "λ = c/f" },
+            { text: "Uncertainty", code: "h / (4 * pi)", desc: "Heisenberg Limit" }
+        ],
+        cosmos: [
+            { text: "Hubble Law", code: "H0 * 10 megaparsec", desc: "v = H0 * d" },
+            { text: "Schwarzschild R", code: "2 * G * M_sun / c^2", desc: "Black Hole Radius" },
+            { text: "Hawking Temp", code: "(h * c^3) / (8 * pi * G * M_sun * 1.38e-23)", desc: "T = hc³/8πGMk" },
+            { text: "Crit Density", code: "3 * H0^2 / (8 * pi * G)", desc: "Flat Universe Check" }
+        ]
+    };
+
+    // Initialize
+    window.onload = () => { changeMode(); };
+
+    function changeMode() {
+        const mode = document.getElementById('mode-selector').value;
+        const buttons = layouts[mode];
         
-        // Solar System
-        parser.evaluate('mass_earth = 5.972e24 kg');
-        parser.evaluate('radius_earth = 6371 km');
-        parser.evaluate('mass_sun = 1.989e30 kg');
-        parser.evaluate('mass_moon = 7.347e22 kg');
-        parser.evaluate('dist_sun = 149600000 km'); // 1 AU
+        labelEl.innerText = mode.toUpperCase() + " CONTROLS";
+        gridEl.innerHTML = ""; // Clear grid
 
-        // Periodic Table (Atomic Mass)
-        parser.evaluate('H = 1.008'); parser.evaluate('He = 4.002');
-        parser.evaluate('C = 12.011'); parser.evaluate('O = 15.999');
-        parser.evaluate('Au = 196.97'); parser.evaluate('Fe = 55.845');
-        parser.evaluate('U = 238.03');
-
-        // Common Constants
-        parser.evaluate('pi = 3.14159265359');
-        parser.evaluate('e = 2.718281828');
-        parser.evaluate('phi = 1.618033988'); // Golden Ratio
-    }
-    loadKnowledge();
-
-    // 2. NATURAL LANGUAGE CLEANER
-    function cleanInput(text) {
-        let clean = text.toLowerCase();
-        // Remove conversational filler
-        const fillers = ['what is', 'calculate', 'solve', 'how much is', 'tell me', 'the', 'of', 'please', '?', '='];
-        fillers.forEach(word => {
-            clean = clean.split(word).join(' '); // Simple remove
+        buttons.forEach(btn => {
+            const button = document.createElement('button');
+            button.innerHTML = `<strong>${btn.text}</strong><span>${btn.desc}</span>`;
+            button.onclick = () => { insert(btn.code); };
+            gridEl.appendChild(button);
         });
-        
-        // Fix specific phrases to Math.js format
-        clean = clean.replace(/ plus /g, '+');
-        clean = clean.replace(/ minus /g, '-');
-        clean = clean.replace(/ times /g, '*');
-        clean = clean.replace(/ divided by /g, '/');
-        clean = clean.replace(/ to /g, ' to '); // Unit conversion
-        clean = clean.replace(/ in /g, ' to '); // "in" acts as convert
-        
-        return clean.trim();
     }
 
-    function setInput(val) {
-        inputEl.value = val;
+    function insert(text) {
+        inputEl.value = text;
         inputEl.focus();
     }
 
-    // 3. THE SOLVER ENGINE
-    function solve() {
-        let rawInput = inputEl.value;
-        if (!rawInput) return;
+    function clearAll() {
+        inputEl.value = '';
+        resultEl.innerText = '0';
+        historyEl.innerText = 'Cleared';
+        plotEl.style.display = 'none';
+    }
 
-        echoEl.innerText = "> " + rawInput;
-        plotBox.style.display = 'none'; // Hide plot unless needed
+    function runCalc() {
+        let expression = inputEl.value.trim();
+        if (!expression) return;
 
-        // Check for Plotting
-        if (rawInput.toLowerCase().includes('plot')) {
-            doPlot(rawInput);
+        // Plotting Handler
+        if (expression.startsWith('plot(')) {
+            handlePlot(expression);
             return;
         }
 
         try {
-            // Step 1: Try Raw Input (Best for math syntax)
-            let answer = parser.evaluate(rawInput);
-            displayResult(answer);
-        } catch (e1) {
-            try {
-                // Step 2: Try NLP Cleaning (Remove "what is", etc)
-                let cleaned = cleanInput(rawInput);
-                let answer = parser.evaluate(cleaned);
-                displayResult(answer);
-            } catch (e2) {
-                // Step 3: FAIL SAFE
-                displayFail(rawInput);
-            }
-        }
-    }
-
-    function displayResult(val) {
-        if (typeof val === 'function') {
-            resultEl.innerText = "Function Defined";
-        } else if (typeof val === 'object' && val.toString) {
-            resultEl.innerText = val.toString();
-        } else {
-            resultEl.innerText = math.format(val, { precision: 14 });
-        }
-    }
-
-    function displayFail(query) {
-        resultEl.innerHTML = "<span style='color:#ff4444; font-size:1.5rem'>Thinking...</span>";
-        // Create a fallback link to WolframAlpha
-        setTimeout(() => {
-            resultEl.innerHTML = `
-                <div style="font-size:1rem; color: #888">I can't calculate that locally.</div>
-                <a href="https://www.wolframalpha.com/input?i=${encodeURIComponent(query)}" 
-                   target="_blank" class="fallback-btn">
-                   👉 Search Universal Database
-                </a>
-            `;
-        }, 500);
-    }
-
-    function doPlot(query) {
-        try {
-            // Extract formula: plot(x^2) -> x^2
-            let formula = query.match(/\(([^)]+)\)/);
-            if (!formula) formula = [0, query.replace('plot', '')]; // Fallback
+            plotEl.style.display = 'none';
+            // Use Scope-enabled parser
+            const result = parser.evaluate(expression);
             
-            const expr = math.compile(formula[1]);
+            let displayRes;
+            if (typeof result === 'object' && result.toString) {
+                displayRes = result.toString();
+            } else {
+                displayRes = math.format(result, { precision: 14 });
+            }
+
+            historyEl.innerText = expression + " =";
+            resultEl.innerText = displayRes;
+        } catch (err) {
+            resultEl.innerText = "Error";
+            historyEl.innerText = err.message;
+        }
+    }
+
+    function handlePlot(exp) {
+        try {
+            const formulaStr = exp.match(/plot\((.*)\)/)[1]; 
+            const expr = math.compile(formulaStr);
             const xValues = math.range(-10, 10, 0.1).toArray();
             const yValues = xValues.map(x => expr.evaluate({x: x}));
 
-            plotBox.style.display = 'block';
-            resultEl.innerText = "Graphing...";
+            plotEl.style.display = 'block';
             
-            Plotly.newPlot('plot-box', [{
-                x: xValues, y: yValues, type: 'scatter', mode: 'lines', line: {color: '#00ffa3'}
+            Plotly.newPlot('plot-area', [{
+                x: xValues, y: yValues, type: 'scatter', mode: 'lines',
+                line: {color: '#7c3aed', width: 3}
             }], {
-                paper_bgcolor: '#000', plot_bgcolor: '#000',
-                margin: { t: 20, r: 20, b: 30, l: 30 },
-                font: { color: '#888' },
-                xaxis: {gridcolor: '#222'}, yaxis: {gridcolor: '#222'}
+                paper_bgcolor: '#111',
+                plot_bgcolor: '#111',
+                margin: { t: 20, r: 20, b: 40, l: 40 },
+                xaxis: { gridcolor: '#333' },
+                yaxis: { gridcolor: '#333' },
+                font: { color: '#ccc' }
             });
-            resultEl.innerText = "";
+            resultEl.innerText = "Graph Generated";
         } catch (e) {
             resultEl.innerText = "Graph Error";
         }
     }
 
-    inputEl.addEventListener('keypress', (e) => {
-        if(e.key === 'Enter') solve();
+    // Enter Key
+    inputEl.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") runCalc();
     });
+
 </script>
 </body>
 </html>
