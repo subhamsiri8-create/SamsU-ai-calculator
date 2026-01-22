@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Care n Cure - Professional Billing</title>
+    <title>Care n Cure - Admin Edit System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -51,7 +51,7 @@
         .view { display: none; }
         .view.active { display: block; }
 
-        /* --- PROFESSIONAL INVOICE SHEET --- */
+        /* INVOICE SHEET */
         .invoice-sheet {
             background: white;
             max-width: 210mm;
@@ -62,7 +62,6 @@
             font-size: 14px;
         }
         
-        /* HEADER */
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--primary); padding-bottom: 20px; margin-bottom: 20px; }
         .logo-area { width: 100px; margin-right: 20px; }
         .logo-img { width: 100%; height: auto; object-fit: contain; }
@@ -71,18 +70,18 @@
         .hospital-input { font-size: 2.2rem; font-weight: 800; color: var(--primary); border: none; width: 100%; text-transform: uppercase; line-height: 1.2; }
         .sub-input { font-size: 0.9rem; color: #444; border:none; width: 100%; }
 
-        /* --- NEW PATIENT GRID SYSTEM --- */
+        /* PATIENT GRID */
         .patient-box {
             border: 1px solid #e2e8f0;
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 25px;
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr; /* Name | Age | Sex */
+            grid-template-columns: 2fr 1fr 1fr;
             gap: 15px;
             background: #f8fafc;
         }
-        .row-2 { grid-column: span 3; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; } /* Phone | Doctor */
+        .row-2 { grid-column: span 3; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
         .form-group { display: flex; flex-direction: column; }
         .form-group label { font-size: 0.75rem; font-weight: bold; color: #64748b; text-transform: uppercase; margin-bottom: 3px; }
@@ -97,38 +96,41 @@
         }
         .form-group input:focus { outline: none; border-bottom: 1px solid var(--primary); }
 
-        /* BILL TABLE */
+        /* TABLE */
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th { background: var(--primary); color: white; padding: 10px; text-align: left; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        th { background: var(--primary); color: white; padding: 10px; text-align: left; font-size: 0.9rem; text-transform: uppercase; }
         td { border-bottom: 1px solid #eee; padding: 10px; vertical-align: top; }
         td input { width: 100%; border: none; font-size: 1rem; }
         
-        /* TOTALS */
-        .total-section { display: flex; justify-content: flex-end; margin-top: 20px; }
-        .total-box { width: 200px; text-align: right; }
-        .total-label { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+        /* ADMIN UI */
+        .admin-panel { padding: 20px; }
+        .admin-table { width: 100%; background: white; border-collapse: collapse; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
+        .admin-table th { background: #e2e8f0; color: #333; padding: 12px; text-align: left; }
+        .admin-table td { padding: 12px; border-bottom: 1px solid #eee; }
+        
+        .btn-edit { background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 5px; }
+        .btn-edit:hover { background: #2563eb; }
 
-        /* LOGIN & CONTROLS */
+        /* MODAL */
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .login-box { background: white; padding: 30px; border-radius: 10px; width: 300px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .login-input { margin-bottom: 15px; padding: 10px; width: 100%; border: 1px solid #ccc; border-radius: 5px; }
         .btn-login { background: var(--primary); color: white; border: none; padding: 10px 20px; width: 100%; border-radius: 5px; cursor: pointer; font-weight: bold; }
         
+        /* FAB CONTROLS */
         .controls { position: fixed; bottom: 30px; right: 30px; display: flex; gap: 10px; }
         .fab { background: var(--primary); color: white; border: none; padding: 15px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        
-        /* ADMIN CSS */
-        .admin-panel { padding: 20px; }
-        .admin-table { width: 100%; background: white; border-collapse: collapse; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
-        .admin-table th { background: #e2e8f0; color: #333; padding: 12px; text-align: left; }
-        .admin-table td { padding: 12px; border-bottom: 1px solid #eee; }
+
+        /* MODE INDICATOR */
+        .edit-mode-banner {
+            background: #f59e0b; color: #fff; text-align: center; padding: 5px; font-weight: bold; border-radius: 4px; margin-bottom: 10px; display: none;
+        }
 
         @media print {
-            .sidebar, .controls, .login-overlay, button { display: none !important; }
+            .sidebar, .controls, .login-overlay, button, .edit-mode-banner { display: none !important; }
             .invoice-sheet { box-shadow: none; margin: 0; width: 100%; padding: 0; }
             body { background: white; }
             .patient-box { border: 1px solid #000; background: none; }
-            .form-group input { border-bottom: none; } /* Clean look for print */
             @page { margin: 0; size: A4; }
         }
     </style>
@@ -137,7 +139,7 @@
 
 <div id="loginModal" class="login-overlay">
     <div class="login-box">
-        <h2 style="color:var(--dark); margin-top:0"><i class="fa fa-lock"></i> Admin Only</h2>
+        <h2 style="color:var(--dark); margin-top:0"><i class="fa fa-lock"></i> Admin Login</h2>
         <input type="text" id="username" class="login-input" placeholder="Username">
         <input type="password" id="password" class="login-input" placeholder="Password">
         <button class="btn-login" onclick="attemptLogin()">Login</button>
@@ -151,7 +153,7 @@
         <i class="fa fa-file-invoice-dollar"></i> New Bill
     </div>
     <div class="nav-item locked" onclick="checkAdminAccess(this)">
-        <i class="fa fa-chart-line"></i> Admin Dashboard
+        <i class="fa fa-pencil-alt"></i> Admin / Edit
     </div>
 </div>
 
@@ -160,6 +162,10 @@
     <div id="view-billing" class="view active">
         <div class="invoice-sheet">
             
+            <div id="editBanner" class="edit-mode-banner">
+                <i class="fa fa-edit"></i> EDITING EXISTING BILL
+            </div>
+
             <div class="header">
                 <div class="logo-area"><img src="logo.png" alt="Logo" class="logo-img"></div>
                 <div class="hospital-info">
@@ -174,66 +180,37 @@
             </div>
 
             <div class="patient-box">
-                <div class="form-group">
-                    <label>Patient Name</label>
-                    <input id="ptName" placeholder="Mr./Mrs. Name">
-                </div>
-                <div class="form-group">
-                    <label>Age</label>
-                    <input id="ptAge" placeholder="25 Yrs">
-                </div>
-                <div class="form-group">
-                    <label>Sex</label>
-                    <input id="ptSex" placeholder="Male/Female">
-                </div>
-                
+                <div class="form-group"><label>Patient Name</label><input id="ptName" placeholder="Mr./Mrs. Name"></div>
+                <div class="form-group"><label>Age</label><input id="ptAge" placeholder="25 Yrs"></div>
+                <div class="form-group"><label>Sex</label><input id="ptSex" placeholder="Male/Female"></div>
                 <div class="row-2">
-                    <div class="form-group">
-                        <label>Phone Number</label>
-                        <input id="ptPhone" placeholder="98XXXXXXXX">
-                    </div>
-                    <div class="form-group">
-                        <label>Ref. Doctor</label>
-                        <input id="ptDoc" placeholder="Dr. Name">
-                    </div>
+                    <div class="form-group"><label>Phone Number</label><input id="ptPhone" placeholder="98XXXXXXXX"></div>
+                    <div class="form-group"><label>Ref. Doctor</label><input id="ptDoc" placeholder="Dr. Name"></div>
                 </div>
             </div>
 
             <table id="billTable">
-                <thead>
-                    <tr>
-                        <th>Description</th>
-                        <th style="width:60px">Qty</th>
-                        <th style="width:80px">Rate</th>
-                        <th style="width:80px">Amount</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Description</th><th style="width:60px">Qty</th><th style="width:80px">Rate</th><th style="width:80px">Amount</th></tr></thead>
                 <tbody id="billBody"></tbody>
             </table>
             <button onclick="addBillRow()" style="background:#f1f5f9; border:1px dashed #ccc; width:100%; padding:8px; cursor:pointer; color:#64748b;">+ Add Item</button>
 
-            <div class="total-section">
-                <div class="total-box">
+            <div style="display:flex; justify-content:flex-end; margin-top:20px;">
+                <div style="width:200px; text-align:right;">
                     <span>Total Amount:</span><br>
-                    <span id="billTotal" class="total-label">₹0.00</span>
+                    <span id="billTotal" style="font-size:1.5rem; font-weight:bold; color:var(--primary);">₹0.00</span>
                 </div>
             </div>
 
             <div style="margin-top:50px; display:flex; justify-content:space-between; font-size:0.8rem;">
-                <div style="text-align:center">
-                    <div style="border-bottom:1px solid #000; width:120px; margin-bottom:5px;"></div>
-                    Patient Sign
-                </div>
-                <div style="text-align:center">
-                    <div style="border-bottom:1px solid #000; width:120px; margin-bottom:5px;"></div>
-                    Authorized Signatory
-                </div>
+                <div style="text-align:center"><div style="border-bottom:1px solid #000; width:120px; margin-bottom:5px;"></div>Patient Sign</div>
+                <div style="text-align:center"><div style="border-bottom:1px solid #000; width:120px; margin-bottom:5px;"></div>Authorized Signatory</div>
             </div>
         </div>
 
         <div class="controls">
             <button class="fab" id="printBtn" onclick="saveAndPrint()"><i class="fa fa-print"></i> Save & Print</button>
-            <button class="fab" style="background:#64748b" onclick="location.reload()"><i class="fa fa-redo"></i> Reset</button>
+            <button class="fab" style="background:#64748b" onclick="resetForm()"><i class="fa fa-redo"></i> New Bill</button>
         </div>
     </div>
 
@@ -243,13 +220,9 @@
                 <h2 style="margin:0">Admin Dashboard</h2>
                 <button onclick="logoutAdmin()" style="background:#ef4444; color:white; border:none; padding:5px 15px; border-radius:4px; cursor:pointer">Logout</button>
             </div>
-            <div class="stats-card">
-                <h3>Today's Collection</h3>
-                <div id="stat-revenue" style="font-size:2rem; font-weight:bold; color:#0891b2">₹0</div>
-            </div>
-            <h3>Recent Bills</h3>
+            
             <table class="admin-table">
-                <thead><tr><th>Bill #</th><th>Patient</th><th>Phone</th><th>Amount</th><th>Status</th></tr></thead>
+                <thead><tr><th>Bill #</th><th>Patient</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody id="adminTableBody"></tbody>
             </table>
         </div>
@@ -276,23 +249,42 @@
     let bills = JSON.parse(localStorage.getItem('cnc_bills')) || [];
     let billCounter = parseInt(localStorage.getItem('cnc_counter')) || 1001;
     let isAdmin = false;
+    let isEditingId = null; // Track if we are editing
 
     window.onload = function() {
-        document.getElementById('billDate').valueAsDate = new Date();
-        document.getElementById('billNo').value = "CNC-" + billCounter;
-        addBillRow();
+        resetForm();
     };
 
-    function addBillRow() {
+    // --- FORM LOGIC ---
+    function resetForm() {
+        isEditingId = null;
+        document.getElementById('editBanner').style.display = 'none';
+        document.getElementById('billDate').valueAsDate = new Date();
+        document.getElementById('billNo').value = "CNC-" + billCounter;
+        
+        // Clear Inputs
+        document.getElementById('ptName').value = "";
+        document.getElementById('ptAge').value = "";
+        document.getElementById('ptSex').value = "";
+        document.getElementById('ptPhone').value = "";
+        document.getElementById('ptDoc').value = "";
+        
+        document.getElementById('billBody').innerHTML = "";
+        addBillRow(); // Add one empty row
+        calcTotal();
+    }
+
+    function addBillRow(desc="", qty=1, rate=0) {
         const tbody = document.getElementById('billBody');
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input class="desc" list="bloodTests" placeholder="Test Name" oninput="autoPrice(this)"></td>
-            <td><input type="number" class="qty" value="1" oninput="calcTotal()"></td>
-            <td><input type="number" class="rate" value="0" oninput="calcTotal()"></td>
+            <td><input class="desc" list="bloodTests" placeholder="Test Name" value="${desc}" oninput="autoPrice(this)"></td>
+            <td><input type="number" class="qty" value="${qty}" oninput="calcTotal()"></td>
+            <td><input type="number" class="rate" value="${rate}" oninput="calcTotal()"></td>
             <td class="amt">₹0</td>
         `;
         tbody.appendChild(tr);
+        if(desc) calcTotal(); // Recalc if adding existing data
     }
 
     function autoPrice(input) {
@@ -315,30 +307,52 @@
         return total;
     }
 
+    // --- SAVE & UPDATE SYSTEM ---
     function saveAndPrint() {
         const patient = document.getElementById('ptName').value;
-        const phone = document.getElementById('ptPhone').value;
-        
         if(!patient) return alert("Please enter Patient Name");
 
-        const btn = document.getElementById('printBtn');
-        btn.innerHTML = "Saving...";
+        // Gather Items
+        const items = [];
+        document.querySelectorAll('#billBody tr').forEach(row => {
+            const desc = row.querySelector('.desc').value;
+            const qty = row.querySelector('.qty').value;
+            const rate = row.querySelector('.rate').value;
+            if(desc) items.push({ desc, qty, rate });
+        });
 
-        const amount = calcTotal();
         const billData = {
             id: document.getElementById('billNo').value,
-            date: new Date().toLocaleString(),
+            date: document.getElementById('billDate').value,
             patient: patient,
-            phone: phone, // Save Phone Number
-            amount: amount,
+            age: document.getElementById('ptAge').value,
+            sex: document.getElementById('ptSex').value,
+            phone: document.getElementById('ptPhone').value,
+            doctor: document.getElementById('ptDoc').value,
+            items: items, // Save full items list!
+            amount: calcTotal(),
             status: 'active'
         };
 
-        bills.push(billData);
-        localStorage.setItem('cnc_bills', JSON.stringify(bills));
-        billCounter++;
-        localStorage.setItem('cnc_counter', billCounter);
+        if (isEditingId) {
+            // UPDATE EXISTING
+            const index = bills.findIndex(b => b.id === isEditingId);
+            if(index >= 0) bills[index] = billData;
+        } else {
+            // SAVE NEW
+            bills.push(billData);
+            billCounter++;
+            localStorage.setItem('cnc_counter', billCounter);
+        }
 
+        // Save to LocalStorage
+        localStorage.setItem('cnc_bills', JSON.stringify(bills));
+
+        // Sync to Cloud
+        const btn = document.getElementById('printBtn');
+        const oldText = btn.innerHTML;
+        btn.innerHTML = "Syncing...";
+        
         fetch(GOOGLE_SCRIPT_URL, {
             method: "POST", mode: "no-cors",
             headers: { "Content-Type": "application/json" },
@@ -346,12 +360,49 @@
         });
 
         setTimeout(() => {
-            btn.innerHTML = "Save & Print";
+            btn.innerHTML = oldText;
             window.print();
-        }, 500);
+            if(isEditingId) {
+                // If we were editing, go back to admin panel after print
+                alert("Bill Updated!");
+                switchView('admin', document.querySelectorAll('.nav-item')[1]);
+            } else {
+                resetForm();
+            }
+        }, 800);
     }
 
-    // ADMIN LOGIC
+    // --- ADMIN EDIT SYSTEM ---
+    function editBill(id) {
+        const bill = bills.find(b => b.id === id);
+        if(!bill) return alert("Error: Bill not found.");
+
+        isEditingId = id; // Set Flag
+        
+        // Fill inputs
+        document.getElementById('billNo').value = bill.id;
+        document.getElementById('billDate').value = bill.date || new Date().toISOString().split('T')[0];
+        document.getElementById('ptName').value = bill.patient;
+        document.getElementById('ptAge').value = bill.age || '';
+        document.getElementById('ptSex').value = bill.sex || '';
+        document.getElementById('ptPhone').value = bill.phone || '';
+        document.getElementById('ptDoc').value = bill.doctor || '';
+
+        // Fill Items
+        document.getElementById('billBody').innerHTML = "";
+        if(bill.items && bill.items.length > 0) {
+            bill.items.forEach(item => addBillRow(item.desc, item.qty, item.rate));
+        } else {
+            addBillRow(); // Fallback if no items found
+        }
+        calcTotal();
+
+        // UI Changes
+        document.getElementById('editBanner').style.display = 'block';
+        switchView('billing', document.querySelectorAll('.nav-item')[0]);
+    }
+
+    // --- STANDARD ADMIN LOGIC ---
     function checkAdminAccess(navEl) {
         if(isAdmin) switchView('admin', navEl);
         else document.getElementById('loginModal').style.display = 'flex';
@@ -372,12 +423,16 @@
     function loadAdminData() {
         const adminBody = document.getElementById('adminTableBody');
         adminBody.innerHTML = '';
-        let todayRev = 0;
         [...bills].reverse().forEach(bill => {
-            todayRev += bill.amount;
-            adminBody.innerHTML += `<tr><td>${bill.id}</td><td><b>${bill.patient}</b></td><td>${bill.phone || '-'}</td><td>₹${bill.amount}</td><td>Saved</td></tr>`;
+            adminBody.innerHTML += `
+                <tr>
+                    <td>${bill.id}</td>
+                    <td><b>${bill.patient}</b></td>
+                    <td>₹${bill.amount}</td>
+                    <td><span style="color:green">Active</span></td>
+                    <td><button class="btn-edit" onclick="editBill('${bill.id}')"><i class="fa fa-pen"></i> Edit</button></td>
+                </tr>`;
         });
-        document.getElementById('stat-revenue').innerText = "₹" + todayRev;
     }
 
     function switchView(viewName, navEl) {
@@ -385,6 +440,7 @@
         document.getElementById('view-' + viewName).classList.add('active');
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         navEl.classList.add('active');
+        if(viewName === 'admin') loadAdminData();
     }
 </script>
 </body>
