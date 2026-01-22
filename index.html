@@ -2,492 +2,302 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MediCode Ultimate</title>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Bill Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #0891b2; /* Cyan 600 */
-            --primary-dark: #0e7490;
-            --bg: #f8fafc;
-            --surface: #ffffff;
-            --text: #0f172a;
-            --text-sec: #64748b;
-            --border: #e2e8f0;
-            --danger: #ef4444;
-            --success: #10b981;
+            --primary: #2563eb;
+            --text: #1f2937;
+            --border: #e5e7eb;
+            --bg: #f3f4f6;
         }
 
-        [data-theme="dark"] {
-            --primary: #22d3ee;
-            --primary-dark: #06b6d4;
-            --bg: #0f172a;
-            --surface: #1e293b;
-            --text: #f1f5f9;
-            --text-sec: #94a3b8;
-            --border: #334155;
-        }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             background: var(--bg);
             color: var(--text);
             margin: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* HEADER */
-        header {
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 20;
-        }
-        .brand { font-size: 1.3rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; }
-        .stat-badge { font-size: 0.75rem; background: var(--bg); padding: 4px 8px; border-radius: 12px; border: 1px solid var(--border); color: var(--text-sec); }
-
-        /* MAIN */
-        main {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0 20px 100px 20px; /* Bottom padding for Nav */
-            max-width: 900px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        /* NAVIGATION */
-        nav {
-            background: var(--surface);
-            display: flex;
-            justify-content: space-around;
-            padding: 12px 0;
-            border-top: 1px solid var(--border);
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            z-index: 30;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
-        }
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 0.7rem;
-            color: var(--text-sec);
-            background: none;
-            border: none;
-            cursor: pointer;
-            gap: 4px;
-        }
-        .nav-item i { font-size: 1.6rem; margin-bottom: 2px; }
-        .nav-item.active { color: var(--primary); font-weight: 600; }
-
-        /* SEARCH AREA */
-        .search-container {
-            position: sticky;
-            top: 0;
-            background: var(--bg);
-            padding: 20px 0;
-            z-index: 10;
-        }
-        .search-input-wrapper {
-            position: relative;
-        }
-        .search-input {
-            width: 100%;
-            padding: 16px 20px 16px 50px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text);
-            font-size: 1.1rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            outline: none;
-            transition: all 0.2s;
-        }
-        .search-input:focus { border-color: var(--primary); box-shadow: 0 4px 25px rgba(8, 145, 178, 0.15); }
-        .search-icon { position: absolute; left: 18px; top: 18px; color: var(--text-sec); font-size: 1.2rem; }
-
-        /* LIST CARDS */
-        .code-card {
-            background: var(--surface);
-            border-radius: 12px;
-            padding: 18px;
-            margin-bottom: 15px;
-            border: 1px solid var(--border);
-            position: relative;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .card-top { display: flex; justify-content: space-between; margin-bottom: 8px; }
-        .code-pill { 
-            padding: 5px 10px; border-radius: 8px; font-weight: 800; font-family: monospace; font-size: 1rem; letter-spacing: 0.5px;
-        }
-        .pill-icd { background: rgba(16, 185, 129, 0.1); color: #059669; }
-        .pill-cpt { background: rgba(124, 58, 237, 0.1); color: #7c3aed; }
-        
-        .card-actions { display: flex; gap: 10px; }
-        .icon-btn { background: none; border: none; cursor: pointer; color: var(--text-sec); font-size: 1.2rem; padding: 0; }
-        .icon-btn:hover { color: var(--primary); }
-        .icon-btn.saved { color: #f59e0b; }
-
-        .card-desc { font-size: 1rem; font-weight: 500; line-height: 1.4; margin-bottom: 6px; }
-        .card-meta { font-size: 0.8rem; color: var(--text-sec); display: flex; gap: 10px; }
-
-        /* VIEWS */
-        .view { display: none; }
-        .view.active { display: block; }
-
-        /* DATA MANAGEMENT STYLES */
-        .settings-panel {
-            background: var(--surface);
             padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
         }
-        .btn-primary { 
-            background: var(--primary); color: white; width: 100%; padding: 15px; 
-            border: none; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 10px;
-        }
-        .btn-outline {
-            background: transparent; border: 2px solid var(--border); color: var(--text);
-            width: 100%; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 10px;
-        }
-        .file-input-wrapper {
-            border: 2px dashed var(--border);
-            padding: 30px;
-            text-align: center;
-            border-radius: 10px;
-            margin-top: 15px;
-            cursor: pointer;
-        }
-        .file-input-wrapper:hover { border-color: var(--primary); background: rgba(8, 145, 178, 0.05); }
 
+        /* --- THE INVOICE SHEET (A4 Size) --- */
+        .invoice-sheet {
+            background: white;
+            width: 210mm; /* A4 Width */
+            min-height: 297mm; /* A4 Height */
+            padding: 20mm;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* --- EDITABLE FIELDS STYLING --- */
+        input, textarea, select {
+            border: 1px dashed #ccc;
+            padding: 5px;
+            font-family: inherit;
+            color: inherit;
+            background: transparent;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 4px;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(37, 99, 235, 0.05);
+        }
+        
+        /* HEADER */
+        .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--primary); padding-bottom: 20px; margin-bottom: 20px; }
+        .hospital-info { width: 60%; }
+        .hospital-input { font-size: 1.8rem; font-weight: bold; color: var(--primary); margin-bottom: 5px; border: none; }
+        .sub-input { font-size: 0.9rem; color: #666; margin-bottom: 2px; }
+        
+        .invoice-meta { text-align: right; width: 35%; }
+        .meta-group { display: flex; gap: 10px; margin-bottom: 5px; align-items: center; justify-content: flex-end; }
+        .meta-label { font-weight: bold; font-size: 0.9rem; }
+
+        /* PATIENT INFO */
+        .patient-section { background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid var(--border); }
+        .row { display: flex; gap: 20px; margin-bottom: 10px; }
+        .col { flex: 1; }
+        .label { font-size: 0.8rem; color: #666; display: block; margin-bottom: 3px; }
+
+        /* BILLING TABLE */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th { text-align: left; background: var(--primary); color: white; padding: 10px; font-size: 0.9rem; }
+        td { border-bottom: 1px solid var(--border); padding: 10px; vertical-align: top; }
+        
+        .qty-col { width: 60px; }
+        .price-col { width: 100px; text-align: right; }
+        .total-col { width: 100px; text-align: right; font-weight: bold; background: #f9fafb; }
+        .action-col { width: 40px; text-align: center; }
+
+        .btn-remove { color: red; cursor: pointer; border: none; background: none; font-size: 1.2rem; }
+        .btn-add {
+            display: block; width: 100%; padding: 10px; background: #ecfdf5; 
+            color: #059669; border: 1px dashed #059669; text-align: center; 
+            cursor: pointer; margin-top: 10px; border-radius: 5px; font-weight: bold;
+        }
+        .btn-add:hover { background: #d1fae5; }
+
+        /* TOTALS SECTION */
+        .totals-section { display: flex; justify-content: flex-end; margin-top: 20px; }
+        .totals-box { width: 300px; }
+        .total-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .grand-total { font-size: 1.3rem; font-weight: bold; color: var(--primary); border-top: 2px solid var(--primary); border-bottom: none; }
+
+        /* FOOTER / CONTROLS */
+        .controls {
+            position: fixed; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .float-btn {
+            background: var(--primary); color: white; border: none; padding: 15px 20px;
+            border-radius: 50px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-weight: bold; display: flex; align-items: center; gap: 10px; transition: transform 0.2s;
+        }
+        .float-btn:hover { transform: translateY(-2px); background: #1d4ed8; }
+        .float-btn.secondary { background: white; color: var(--text); }
+
+        .footer-note { margin-top: 40px; text-align: center; font-size: 0.8rem; color: #999; border-top: 1px solid #eee; padding-top: 10px; }
+
+        /* --- PRINT MODE (THE MAGIC) --- */
+        @media print {
+            body { background: white; padding: 0; }
+            .invoice-sheet { box-shadow: none; width: 100%; padding: 0; margin: 0; }
+            .controls, .btn-add, .action-col, .btn-remove { display: none !important; }
+            input, textarea, select { border: none !important; resize: none; padding: 0; }
+            /* Hide placeholders on print */
+            input::placeholder { color: transparent; }
+            /* Expand sheet to full paper */
+            @page { margin: 15mm; }
+        }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="brand"><i class="ph ph-heartbeat"></i> MediCode Ultimate</div>
-    <div class="stat-badge" id="dbCount">Loading...</div>
-</header>
+<div class="controls">
+    <button class="float-btn" onclick="window.print()"><i class="fa fa-print"></i> Print / PDF</button>
+    <button class="float-btn secondary" onclick="resetBill()"><i class="fa fa-redo"></i> New Bill</button>
+</div>
 
-<main>
-    <div id="view-search" class="view active">
-        <div class="search-container">
-            <div class="search-input-wrapper">
-                <i class="ph ph-magnifying-glass search-icon"></i>
-                <input type="text" id="searchBox" class="search-input" placeholder="Search conditions, CPT, ICD..." onkeyup="handleSearch()">
+<div class="invoice-sheet">
+    
+    <div class="header">
+        <div class="hospital-info">
+            <input type="text" class="hospital-input" value="CITY GENERAL HOSPITAL" placeholder="Hospital Name">
+            <input type="text" class="sub-input" value="123 Medical Center Dr, New York, NY" placeholder="Address Line 1">
+            <input type="text" class="sub-input" value="Ph: (555) 019-2834 | Email: billing@hospital.com" placeholder="Contact Info">
+        </div>
+        <div class="invoice-meta">
+            <div class="meta-group">
+                <span class="meta-label">Bill No:</span>
+                <input type="text" value="#INV-2024-001" style="width: 100px; text-align: right;">
             </div>
-            <div style="display:flex; gap:10px; margin-top:10px; overflow-x:auto; padding-bottom:5px;">
-                <button class="stat-badge" onclick="filterCat('All')">All</button>
-                <button class="stat-badge" onclick="filterCat('Cardio')">Cardio</button>
-                <button class="stat-badge" onclick="filterCat('Resp')">Resp</button>
-                <button class="stat-badge" onclick="filterCat('Ortho')">Ortho</button>
-                <button class="stat-badge" onclick="filterCat('Trauma')">Trauma</button>
+            <div class="meta-group">
+                <span class="meta-label">Date:</span>
+                <input type="date" id="billDate" style="width: 130px; text-align: right;">
+            </div>
+            <div class="meta-group">
+                <span class="meta-label">Time:</span>
+                <input type="time" id="billTime" style="width: 100px; text-align: right;">
             </div>
         </div>
-        <div id="resultsList"></div>
     </div>
 
-    <div id="view-saved" class="view">
-        <h2 style="display:flex; align-items:center; gap:10px;"><i class="ph ph-star-fill" style="color:#f59e0b"></i> Favorites</h2>
-        <div id="savedList"></div>
-        <button class="btn-outline" onclick="exportFavorites()"><i class="ph ph-export"></i> Export Favorites to CSV</button>
-    </div>
-
-    <div id="view-data" class="view">
-        <h2><i class="ph ph-database"></i> Data Management</h2>
-        
-        <div class="settings-panel">
-            <h3><i class="ph ph-upload-simple"></i> Import Full Database</h3>
-            <p style="font-size:0.9rem; color:var(--text-sec); margin-bottom:15px;">
-                Upload a CSV file to add thousands of codes instantly. 
-                <br>Format: <code>Code, Description, Type, Category</code>
-            </p>
-            <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="handleFileUpload(this)">
-            <div class="file-input-wrapper" onclick="document.getElementById('csvFile').click()">
-                <i class="ph ph-file-csv" style="font-size:2rem; color:var(--text-sec)"></i>
-                <div style="margin-top:5px; font-weight:600;">Tap to Upload CSV</div>
+    <div class="patient-section">
+        <div class="row">
+            <div class="col">
+                <label class="label">Patient Name</label>
+                <input type="text" placeholder="John Doe" style="font-weight: bold;">
             </div>
-            <p id="uploadStatus" style="font-size:0.8rem; text-align:center; margin-top:10px; color:var(--primary);"></p>
+            <div class="col">
+                <label class="label">Age / Gender</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="number" placeholder="45" style="width:60px;">
+                    <select style="width:100px;"><option>Male</option><option>Female</option><option>Other</option></select>
+                </div>
+            </div>
+            <div class="col">
+                <label class="label">Doctor In-Charge</label>
+                <input type="text" placeholder="Dr. Smith">
+            </div>
         </div>
-
-        <div class="settings-panel">
-            <h3><i class="ph ph-plus-circle"></i> Add Single Code</h3>
-            <input type="text" id="newCode" class="search-input" placeholder="Code (e.g. Z99)" style="margin-bottom:10px; padding:10px;">
-            <input type="text" id="newDesc" class="search-input" placeholder="Description" style="margin-bottom:10px; padding:10px;">
-            <select id="newCat" class="search-input" style="padding:10px;">
-                <option value="General">General</option>
-                <option value="Cardio">Cardiology</option>
-                <option value="Resp">Respiratory</option>
-                <option value="Trauma">Trauma</option>
-            </select>
-            <button class="btn-primary" onclick="addSingleCode()">Add to Library</button>
-        </div>
-
-        <div class="settings-panel" style="border-color:var(--danger)">
-            <h3 style="color:var(--danger)">Danger Zone</h3>
-            <button class="btn-outline" style="border-color:var(--danger); color:var(--danger)" onclick="resetDb()">Factory Reset Database</button>
+        <div class="row" style="margin-bottom:0;">
+            <div class="col">
+                <label class="label">Address</label>
+                <input type="text" placeholder="123 Patient St, City">
+            </div>
+            <div class="col">
+                <label class="label">UHID / Reg No.</label>
+                <input type="text" placeholder="REG-998877">
+            </div>
         </div>
     </div>
-</main>
 
-<nav>
-    <button class="nav-item active" onclick="switchView('search', this)">
-        <i class="ph ph-magnifying-glass"></i> Search
-    </button>
-    <button class="nav-item" onclick="switchView('saved', this)">
-        <i class="ph ph-bookmarks"></i> Saved
-    </button>
-    <button class="nav-item" onclick="switchView('data', this)">
-        <i class="ph ph-gear"></i> Manage
-    </button>
-</nav>
+    <table id="billTable">
+        <thead>
+            <tr>
+                <th>Description / Service</th>
+                <th class="qty-col">Qty</th>
+                <th class="price-col">Rate</th>
+                <th class="total-col">Amount</th>
+                <th class="action-col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
+
+    <button class="btn-add" onclick="addRow()">+ Add Item</button>
+
+    <div class="totals-section">
+        <div class="totals-box">
+            <div class="total-row">
+                <span>Subtotal</span>
+                <span id="subTotal">$0.00</span>
+            </div>
+            <div class="total-row">
+                <span>Tax (%) <input type="number" id="taxRate" value="0" oninput="calcTotal()" style="width:40px; text-align:center; border:1px solid #ddd;"></span>
+                <span id="taxAmount">$0.00</span>
+            </div>
+            <div class="total-row">
+                <span>Discount</span>
+                <input type="number" id="discount" value="0" oninput="calcTotal()" style="width:80px; text-align:right;">
+            </div>
+            <div class="total-row grand-total">
+                <span>Total Due</span>
+                <span id="grandTotal">$0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 50px; display: flex; justify-content: space-between;">
+        <div style="text-align: center;">
+            <div style="border-bottom: 1px solid black; width: 150px; margin-bottom: 5px;"></div>
+            <small>Patient Signature</small>
+        </div>
+        <div style="text-align: center;">
+            <div style="border-bottom: 1px solid black; width: 150px; margin-bottom: 5px;"></div>
+            <small>Authorized Signatory</small>
+        </div>
+    </div>
+
+    <div class="footer-note">
+        <input type="text" value="Get well soon! This is a computer generated invoice." style="text-align: center; width: 100%;">
+    </div>
+
+</div>
 
 <script>
-    // --- 1. THE "REAL" STARTER DATASET (Top 60 Common Codes) ---
-    const starterPack = [
-        // GENERAL / INFECTION
-        {c:"U07.1", d:"COVID-19", t:"ICD", cat:"Resp"},
-        {c:"J09.X2", d:"Influenza A", t:"ICD", cat:"Resp"},
-        {c:"A41.9", d:"Sepsis, unspecified organism", t:"ICD", cat:"Infection"},
-        {c:"E11.9", d:"Type 2 Diabetes w/o complications", t:"ICD", cat:"Endo"},
-        {c:"E78.5", d:"Hyperlipidemia, unspecified", t:"ICD", cat:"Endo"},
-        
-        // CARDIO
-        {c:"I10", d:"Essential (primary) hypertension", t:"ICD", cat:"Cardio"},
-        {c:"I21.9", d:"Acute myocardial infarction (Heart Attack)", t:"ICD", cat:"Cardio"},
-        {c:"I48.91", d:"Unspecified atrial fibrillation", t:"ICD", cat:"Cardio"},
-        {c:"I50.9", d:"Heart failure, unspecified", t:"ICD", cat:"Cardio"},
-        
-        // RESPIRATORY
-        {c:"J44.9", d:"COPD, unspecified", t:"ICD", cat:"Resp"},
-        {c:"J18.9", d:"Pneumonia, unspecified organism", t:"ICD", cat:"Resp"},
-        {c:"J45.909", d:"Unspecified asthma, uncomplicated", t:"ICD", cat:"Resp"},
-        
-        // TRAUMA / ORTHO
-        {c:"S72.001A", d:"Fracture of neck of right femur", t:"ICD", cat:"Ortho"},
-        {c:"S06.0X0A", d:"Concussion without loss of consciousness", t:"ICD", cat:"Trauma"},
-        {c:"M54.5", d:"Low back pain", t:"ICD", cat:"Ortho"},
-        {c:"M25.561", d:"Pain in right knee", t:"ICD", cat:"Ortho"},
-        
-        // MENTAL
-        {c:"F41.1", d:"Generalized anxiety disorder", t:"ICD", cat:"Psych"},
-        {c:"F32.9", d:"Major depressive disorder, single episode", t:"ICD", cat:"Psych"},
-        
-        // COMMON CPT (PROCEDURES)
-        {c:"99203", d:"Office visit New Patient (30-44 min)", t:"CPT", cat:"E&M"},
-        {c:"99213", d:"Office visit Est Patient (20-29 min)", t:"CPT", cat:"E&M"},
-        {c:"99214", d:"Office visit Est Patient (30-39 min)", t:"CPT", cat:"E&M"},
-        {c:"99283", d:"Emergency Dept Visit (Moderate)", t:"CPT", cat:"E&M"},
-        {c:"99285", d:"Emergency Dept Visit (High Severity)", t:"CPT", cat:"E&M"},
-        {c:"71045", d:"Chest X-ray, 1 view", t:"CPT", cat:"Rad"},
-        {c:"71046", d:"Chest X-ray, 2 views", t:"CPT", cat:"Rad"},
-        {c:"36415", d:"Collection of venous blood (Venipuncture)", t:"CPT", cat:"Lab"},
-        {c:"85025", d:"CBC (Complete Blood Count)", t:"CPT", cat:"Lab"},
-        {c:"80053", d:"Comprehensive Metabolic Panel", t:"CPT", cat:"Lab"},
-        {c:"93000", d:"EKG (Electrocardiogram)", t:"CPT", cat:"Cardio"}
-    ];
+    // Set Default Date/Time
+    document.getElementById('billDate').valueAsDate = new Date();
+    document.getElementById('billTime').value = new Date().toTimeString().slice(0,5);
 
-    // --- 2. STATE MANAGEMENT ---
-    let db = [];
-    let saved = [];
+    const tbody = document.querySelector('#billTable tbody');
 
-    function init() {
-        // Load from LocalStorage
-        const storedDb = localStorage.getItem('medi_db');
-        const storedSaved = localStorage.getItem('medi_saved');
-
-        if (storedDb) {
-            db = JSON.parse(storedDb);
-        } else {
-            // First time load: Use starter pack
-            db = starterPack;
-            saveDb();
-        }
-
-        if (storedSaved) saved = JSON.parse(storedSaved);
-
-        updateCount();
-        handleSearch();
+    // Default Row
+    function addRow(desc = '', qty = 1, price = 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" class="desc" value="${desc}" placeholder="Service Name (e.g. Consultation)"></td>
+            <td><input type="number" class="qty" value="${qty}" min="1" oninput="calcRow(this)"></td>
+            <td><input type="number" class="price" value="${price}" min="0" step="0.01" oninput="calcRow(this)"></td>
+            <td class="amount">$0.00</td>
+            <td class="action-col"><button class="btn-remove" onclick="removeRow(this)">×</button></td>
+        `;
+        tbody.appendChild(tr);
+        calcRow(tr.querySelector('.qty')); // Initial Calc
     }
 
-    function saveDb() {
-        localStorage.setItem('medi_db', JSON.stringify(db));
-        updateCount();
+    function removeRow(btn) {
+        btn.closest('tr').remove();
+        calcTotal();
     }
 
-    function updateCount() {
-        document.getElementById('dbCount').innerText = `${db.length} Codes`;
+    function calcRow(input) {
+        const tr = input.closest('tr');
+        const qty = parseFloat(tr.querySelector('.qty').value) || 0;
+        const price = parseFloat(tr.querySelector('.price').value) || 0;
+        const total = qty * price;
+        tr.querySelector('.amount').innerText = '$' + total.toFixed(2);
+        tr.dataset.total = total;
+        calcTotal();
     }
 
-    // --- 3. SEARCH & RENDER ---
-    function handleSearch() {
-        const query = document.getElementById('searchBox').value.toLowerCase();
-        const resultsDiv = document.getElementById('resultsList');
-        
-        // Limit results to 50 for performance if query is empty
-        let limit = query === '' ? 50 : 200;
-        
-        const filtered = db.filter(item => 
-            item.c.toLowerCase().includes(query) || 
-            item.d.toLowerCase().includes(query)
-        ).slice(0, limit);
-
-        renderCards(filtered, resultsDiv);
-    }
-
-    function filterCat(cat) {
-        document.getElementById('searchBox').value = cat === 'All' ? '' : cat;
-        handleSearch();
-    }
-
-    function renderCards(data, container) {
-        container.innerHTML = '';
-        if(data.length === 0) {
-            container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-sec)">No results found.<br><small>Try importing a full CSV in settings.</small></div>`;
-            return;
-        }
-
-        data.forEach(item => {
-            const isSaved = saved.includes(item.c);
-            const html = `
-                <div class="code-card">
-                    <div class="card-top">
-                        <span class="code-pill ${item.t === 'ICD' ? 'pill-icd' : 'pill-cpt'}">${item.c}</span>
-                        <div class="card-actions">
-                            <button class="icon-btn" onclick="copyCode('${item.c}')"><i class="ph ph-copy"></i></button>
-                            <button class="icon-btn ${isSaved ? 'saved' : ''}" onclick="toggleSave('${item.c}')">
-                                <i class="ph ${isSaved ? 'ph-star-fill' : 'ph-star'}"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-desc">${item.d}</div>
-                    <div class="card-meta">
-                        <span><i class="ph ph-tag"></i> ${item.cat || 'General'}</span>
-                        <span><i class="ph ph-files"></i> ${item.t}</span>
-                    </div>
-                </div>
-            `;
-            container.innerHTML += html;
+    function calcTotal() {
+        let sub = 0;
+        document.querySelectorAll('tr').forEach(tr => {
+            if(tr.dataset.total) sub += parseFloat(tr.dataset.total);
         });
+
+        const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+        const discount = parseFloat(document.getElementById('discount').value) || 0;
+
+        const tax = sub * (taxRate / 100);
+        const grand = (sub + tax) - discount;
+
+        document.getElementById('subTotal').innerText = '$' + sub.toFixed(2);
+        document.getElementById('taxAmount').innerText = '$' + tax.toFixed(2);
+        document.getElementById('grandTotal').innerText = '$' + grand.toFixed(2);
     }
 
-    // --- 4. SAVED / FAVORITES ---
-    function toggleSave(code) {
-        if(saved.includes(code)) {
-            saved = saved.filter(c => c !== code);
-        } else {
-            saved.push(code);
-        }
-        localStorage.setItem('medi_saved', JSON.stringify(saved));
-        
-        // Refresh UI
-        handleSearch();
-        renderSaved();
-    }
-
-    function renderSaved() {
-        const savedItems = db.filter(item => saved.includes(item.c));
-        renderCards(savedItems, document.getElementById('savedList'));
-    }
-
-    function exportFavorites() {
-        const savedItems = db.filter(item => saved.includes(item.c));
-        const csv = Papa.unparse(savedItems);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "my_favorites.csv";
-        link.click();
-    }
-
-    // --- 5. DATA IMPORT / ADD ---
-    function addSingleCode() {
-        const c = document.getElementById('newCode').value;
-        const d = document.getElementById('newDesc').value;
-        const cat = document.getElementById('newCat').value;
-        
-        if(!c || !d) return alert("Fill all fields");
-
-        db.unshift({c: c.toUpperCase(), d: d, t: "Custom", cat: cat});
-        saveDb();
-        alert("Code Added!");
-        switchView('search', document.querySelector('.nav-item'));
-        handleSearch();
-    }
-
-    function handleFileUpload(input) {
-        const file = input.files[0];
-        if(!file) return;
-
-        document.getElementById('uploadStatus').innerText = "Parsing file...";
-
-        Papa.parse(file, {
-            header: true,
-            complete: function(results) {
-                // Expects CSV headers: Code, Description, Type, Category
-                // Map to internal format
-                const newRows = results.data.map(row => ({
-                    c: row.Code || row.code || "UNKNOWN",
-                    d: row.Description || row.description || "No Desc",
-                    t: row.Type || row.type || "Import",
-                    cat: row.Category || row.category || "General"
-                })).filter(r => r.c !== "UNKNOWN");
-
-                db = [...newRows, ...db]; // Merge new data
-                saveDb();
-                document.getElementById('uploadStatus').innerText = `Success! Added ${newRows.length} codes.`;
-                updateCount();
-            },
-            error: function() {
-                alert("Error reading CSV.");
-            }
-        });
-    }
-
-    function resetDb() {
-        if(confirm("Delete all data and reset to starter pack?")) {
-            db = starterPack;
-            saved = [];
-            saveDb();
-            localStorage.setItem('medi_saved', JSON.stringify([]));
+    function resetBill() {
+        if(confirm("Start a new bill? Current data will be lost.")) {
             location.reload();
         }
     }
 
-    function copyCode(text) {
-        navigator.clipboard.writeText(text);
-        alert("Copied " + text);
-    }
-
-    // --- 6. NAVIGATION ---
-    function switchView(viewName, btn) {
-        document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-        document.getElementById('view-' + viewName).classList.add('active');
-        
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        if(btn) btn.classList.add('active');
-
-        if(viewName === 'saved') renderSaved();
-    }
-
-    // START
-    window.onload = init;
+    // Add 3 starter rows
+    addRow('General Consultation', 1, 50);
+    addRow('Blood Test (CBC)', 1, 30);
+    addRow('', 1, 0);
 
 </script>
+
 </body>
 </html>
